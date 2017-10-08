@@ -165,24 +165,15 @@ DFT4_L2 <- DFT4 %>%  # filtered to contain last 2 orders for each system
 # == Enable Real account when > than 2 trades and profit factor in T1 is > 1.2
 # == Not trade when there is a news macroscopic event
 
-# Logic DEMO & REAL account activation
-# 1. DEMO <= 10 orders allow trades                               -> DFT2_1 - OK line 164
-# 2. DEMO > 10 orders && pr.fact < 0.7 stop trade DEMO            -> DFT2_2 - OK line 176
-# 3. DEMO > 10 orders && pr.fact >= 0.7 keep trade DEMO           -> DFT2_3 - OK line 187
-# 4. DEMO > 10 orders && pr.fact > 1.6 start trade REAL           -> DFT4_1 - OK line 197
-#
-# Handle REAL terminal only when n. orders in REAL >= 2
-# 1. REAL last 2 orders && pr.fact < 1 stop trade REAL            -> DFT4_2 - OK line 198
-
 # ----------------
 # Implementation of logic
 #-----------------
 #### SORTING AND DECIDE IF TRADING ON THE DEMO ACCOUNT #### -----------------------------
-# 1. DEMO <= 10 orders allow trades                               -> DFT2_1
+# DEMO always allow trades                               
 DFT2_L %>%
   group_by(MagicNumber) %>%
   summarise(nOrders = n()) %>%
-  filter(nOrders <= 10)%>%
+  #filter(nOrders <= 10)%>%
   select(MagicNumber) %>%
   mutate(IsEnabled = 1) %>% 
   # Write command "allow"
@@ -190,7 +181,7 @@ DFT2_L %>%
 # ======================= OK
 
 #### DECIDE IF TRADING ON THE REAL ACCOUNT #### -----------------------------
-# 4. Last 9 orders on DEMO && pr.fact > 1.6 start trade REAL           -> DFT4_1 
+# Last 10 orders on DEMO && pr.fact > 1.6 start trade REAL         
 DFT2_L %>%
   profitFactor(10) %>% 
   ungroup() %>% 
@@ -200,8 +191,7 @@ DFT2_L %>%
   # Write command "allow"
   writeCommandViaCSV(path_T4)
 
-# -- Version 7.2 with 9 last orders in the Real account (overwrite decision...)
-# 4. Last 9 orders on DEMO && pr.fact < 1.2 stop trade REAL           -> DFT4_2 
+# 4. Last 2 orders on DEMO && pr.fact > 1.2 trade REAL          
 DFT2_L2 %>%
   profitFactor(2) %>% 
   ungroup() %>% 
@@ -212,7 +202,7 @@ DFT2_L2 %>%
   writeCommandViaCSV(path_T4)
 
 #### DECIDE IF NOT TO TRADING ON THE REAL ACCOUNT #### -----------------------------
-# 4. Last 9 orders on DEMO && pr.fact > 1.6 start trade REAL           -> DFT4_1 
+# 4. Last 9 orders on DEMO && pr.fact < 1.6 start trade REAL
 DFT2_L %>%
   profitFactor(10) %>% 
   ungroup() %>% 
@@ -222,8 +212,7 @@ DFT2_L %>%
   # Write command "allow"
   writeCommandViaCSV(path_T4)
 
-# -- Version 7.2 with 9 last orders in the Real account (overwrite decision...)
-# 4. Last 9 orders on DEMO && pr.fact < 1.2 stop trade REAL           -> DFT4_2 
+# 4. Last 9 orders on DEMO && pr.fact < 1.2 stop trade REAL
 DFT2_L2 %>%
   profitFactor(2) %>% 
   ungroup() %>% 
