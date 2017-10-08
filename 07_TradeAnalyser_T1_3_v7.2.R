@@ -10,7 +10,7 @@
 #  - including reading file to check for the news events and block trades on accounts
 # Version 07.1
 #  - stopping real account if there are more than 2 consecutive losses
-# Version 7.2
+# Version 7.2 git checkout cde7d6ea
 #  - version only account for last 10 trades in Demo terminal and demo system will always trade!
 
 # packages used
