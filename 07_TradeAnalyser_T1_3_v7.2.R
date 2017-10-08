@@ -12,7 +12,7 @@
 #  - stopping real accoun t if there are more than 2 consecutive losses
 # Version 7.2 to return to this use code in console: system("git checkout cde7d6ea")
 #  - version only account for last 10 trades in Demo terminal and demo system will always trade!
-# Version 7.2.1
+# Version 7.2.1 to return to this use code in console: system("git checkout 93d1ffc8")
 #  - simplified logic and code
 
 # packages used
