@@ -9,9 +9,11 @@
 # Version 07 
 #  - including reading file to check for the news events and block trades on accounts
 # Version 07.1
-#  - stopping real account if there are more than 2 consecutive losses
-# Version 7.2 git checkout cde7d6ea
+#  - stopping real accoun t if there are more than 2 consecutive losses
+# Version 7.2 to return to this use code in console: system("git checkout cde7d6ea")
 #  - version only account for last 10 trades in Demo terminal and demo system will always trade!
+# Version 7.2.1
+#  - simplified logic and code
 
 # packages used
 library(lubridate) #install.packages("lubridate")
@@ -19,11 +21,13 @@ library(dplyr)
 library(readr)   #used to import data read_csv
 
 # ----------- Applied Logic -----------------
-# -- Read trading results from Terminal 2
-# -- Split trading results from Terminal 2 into categories
-# -- Depend on conditions allow trades in Terminal 2 and Terminal 4
-# -- Monitor trade results using profit factor on both Terminals when profitable trades continue during 10 trades
-# -- Start/Stop trades on Terminals at desired profit factor levels of the systems
+# -- Read trading results from Terminal 1
+# -- Split trading results from Terminal 1 into categories using profit factor
+# -- Depend on conditions of LAST 10 trades in Terminal 1, allow trades in Terminal 3
+#   -- on last 10 trades in T1
+#   -- enable T3 when Profit factor of 10 trades > 1.6
+#   -- enable T3 when Profit factor of 2 trades > 1.2
+# -- Start/Stop trades on Terminals at MacroEconomic news releases
 
 # ----------------
 # Used Functions
@@ -98,7 +102,7 @@ path_T2 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 path_T4 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 
 # -------------------------
-# read data from trades in terminal 2
+# read data from trades in terminal 1
 # -------------------------
 DFT2 <- try(read_csv(file = paste(path_T2, "OrdersResultsT1.csv", sep = ""), 
                      col_names = c("MagicNumber", "TicketNumber", "OrderStartTime", 
@@ -114,8 +118,13 @@ DFT2$OrderType      <- as.factor(DFT2$OrderType)
 DFT2_L <- DFT2 %>%  # filtered to contain last 10 orders for each system
   group_by(MagicNumber) %>% 
   arrange(MagicNumber, desc(OrderCloseTime)) %>% 
-  filter(row_number() <= 10)
+  filter(row_number() <= 11)
 
+# get last 2 trades for each Magic system and arrange orders to have descending order
+DFT2_L2 <- DFT2 %>%  # filtered to contain last 10 orders for each system
+  group_by(MagicNumber) %>% 
+  arrange(MagicNumber, desc(OrderCloseTime)) %>% 
+  filter(row_number() <= 3)
 # -------------------------
 # read data from trades in terminal 4
 # -------------------------
@@ -144,19 +153,16 @@ DFT4_L2 <- DFT4 %>%  # filtered to contain last 2 orders for each system
 
 
 # -------------------------
-# data frame T2 analysis and manipulation
+# data frame T1 analysis and manipulation
 # -------------------------
 # ----------------
 # Summarise orders
 #-----------------
-# New logic for DEMO and REAL terminal:
-# == Allow trades on DEMO terminal when < than 10 trades on Demo account independently on result
-# == Disable trades on Demo account when > than 10 trades and prof factor is < 0.7
+# Logic for DEMO and REAL terminal:
+# == Always allow trades on DEMO terminal
 # == Not enable Real account until > than 10 trades on Demo account were completed
-# == Enable Real account when > than 10 trades and profit factor in T2 is > 1.6
-# == Disable Real account when > than 10 trades and profit factor in T2 is < 1.2
-# == When Number of trades on Real account is > 10 switch control of trades only to T4 results
-# == Consider only last 20 results on the Real account for profit factor estimation
+# == Enable Real account when > than 10 trades and profit factor in T1 is > 1.6
+# == Enable Real account when > than 2 trades and profit factor in T1 is > 1.2
 # == Not trade when there is a news macroscopic event
 
 # Logic DEMO & REAL account activation
@@ -173,77 +179,60 @@ DFT4_L2 <- DFT4 %>%  # filtered to contain last 2 orders for each system
 #-----------------
 #### SORTING AND DECIDE IF TRADING ON THE DEMO ACCOUNT #### -----------------------------
 # 1. DEMO <= 10 orders allow trades                               -> DFT2_1
-DFT2_1 <- DFT2_L %>%
+DFT2_L %>%
   group_by(MagicNumber) %>%
   summarise(nOrders = n()) %>%
   filter(nOrders <= 10)%>%
   select(MagicNumber) %>%
-  mutate(IsEnabled = 1)
-
-# Write command "allow"
-writeCommandViaCSV(DFT2_1, path_T2)
+  mutate(IsEnabled = 1) %>% 
+  # Write command "allow"
+  writeCommandViaCSV(path_T2)
 # ======================= OK
-
-# # 2. DEMO > 10 orders && pr.fact < 0.7 stop trade DEMO            -> DFT2_2
-# DFT2_2 <- DFT2 %>% 
-#   profitFactor(10) %>% 
-#   filter(PrFact < 0.7)%>%
-#   select(MagicNumber) %>%
-#   mutate(IsEnabled = 0)
-# 
-# # Write command "allow"
-# writeCommandViaCSV(DFT2_2, path_T2)
-# ======================= OK
-
-# # 3. DEMO > 10 orders && pr.fact >= 0.7 keep trade DEMO           -> DFT2_3
-# DFT2_3 <- DFT2 %>% 
-#   profitFactor(10) %>% 
-#   filter(PrFact >= 0.7)%>%
-#   select(MagicNumber) %>%
-#   mutate(IsEnabled = 1)
-# 
-# # Write command "allow"
-# writeCommandViaCSV(DFT2_3, path_T2)
 
 #### DECIDE IF TRADING ON THE REAL ACCOUNT #### -----------------------------
 # 4. Last 9 orders on DEMO && pr.fact > 1.6 start trade REAL           -> DFT4_1 
-DFT4_1 <- DFT2_L %>%
-  profitFactor(9) %>% 
+DFT2_L %>%
+  profitFactor(10) %>% 
   ungroup() %>% 
-  filter(PrFact > 1.6) %>% 
+  filter(PrFact >= 1.6) %>% 
   select(MagicNumber) %>% 
-  mutate(MagicNumber = MagicNumber + 200, IsEnabled = 1)
-
-# Write command "allow"
-writeCommandViaCSV(DFT4_1, path_T4)
+  mutate(MagicNumber = MagicNumber + 200, IsEnabled = 1) %>% 
+  # Write command "allow"
+  writeCommandViaCSV(path_T4)
 
 # -- Version 7.2 with 9 last orders in the Real account (overwrite decision...)
 # 4. Last 9 orders on DEMO && pr.fact < 1.2 stop trade REAL           -> DFT4_2 
-DFT4_2 <- DFT2_L %>%
-  profitFactor(9) %>% 
+DFT2_L2 %>%
+  profitFactor(2) %>% 
+  ungroup() %>% 
+  filter(PrFact >= 1.2) %>% 
+  select(MagicNumber) %>% 
+  mutate(MagicNumber = MagicNumber + 200, IsEnabled = 1) %>% 
+  # Write command "allow"
+  writeCommandViaCSV(path_T4)
+
+#### DECIDE IF NOT TO TRADING ON THE REAL ACCOUNT #### -----------------------------
+# 4. Last 9 orders on DEMO && pr.fact > 1.6 start trade REAL           -> DFT4_1 
+DFT2_L %>%
+  profitFactor(10) %>% 
+  ungroup() %>% 
+  filter(PrFact < 1.6) %>% 
+  select(MagicNumber) %>% 
+  mutate(MagicNumber = MagicNumber + 200, IsEnabled = 0) %>% 
+  # Write command "allow"
+  writeCommandViaCSV(path_T4)
+
+# -- Version 7.2 with 9 last orders in the Real account (overwrite decision...)
+# 4. Last 9 orders on DEMO && pr.fact < 1.2 stop trade REAL           -> DFT4_2 
+DFT2_L2 %>%
+  profitFactor(2) %>% 
   ungroup() %>% 
   filter(PrFact < 1.2) %>% 
   select(MagicNumber) %>% 
-  mutate(MagicNumber = MagicNumber + 200, IsEnabled = 0)
+  mutate(MagicNumber = MagicNumber + 200, IsEnabled = 0) %>% 
+  # Write command "allow"
+  writeCommandViaCSV(path_T4)
 
-# Write command "allow"
-writeCommandViaCSV(DFT4_2, path_T4)
-
-# # -- Version 7.1 with 2 last orders in the Real account (overwrite decision...)
-# # Handle REAL terminal only when n. orders in REAL > 2
-# # 1. REAL last 2 orders && pr.fact < 1 stop trade REAL         -> DFT4_2
-# DFT4_2 <- DFT4_L2 %>%
-#   group_by(MagicNumber) %>%
-#   summarise(nOrders = n()) %>%
-#   filter(nOrders >= 2) %>%
-#   inner_join(DFT4, by = "MagicNumber") %>%
-#   profitFactor(2) %>%
-#   filter(PrFact < 1) %>%
-#   select(MagicNumber) %>%
-#   mutate(IsEnabled = 0)
-# 
-# # Write command "allow"
-# writeCommandViaCSV(DFT4_2, path_T4)
 
 ##========================================
 # stopping all systems when macroeconomic event is present
@@ -264,22 +253,20 @@ if(DF_NT[1,1] == 1) {
 ## write a summary T2 and T4
 # Terminal 2
 # Summary results
-PL2 <- DFT2 %>%
+DFT2 %>%
   group_by(MagicNumber) %>%
   summarise(SumProfit = sum(Profit),
-            nOrders = n())
-
-# create a summary file for review
-write.csv(PL2, file = paste(path_T2, "SystemSummary", ".csv", sep = ""),
-          row.names = FALSE)
+            nOrders = n()) %>% 
+  # create a summary file for review
+  write.csv(file = paste(path_T2, "SystemSummary", ".csv", sep = ""),
+            row.names = FALSE)
 
 # Terminal 4
 # Summary results
-PL4 <- DFT4%>%
+DFT4%>%
   group_by(MagicNumber) %>%
   summarise(SumProfit = sum(Profit),
-            nOrders = n())
-
-# create a summary file for review
-write.csv(PL4, file = paste(path_T4, "SystemSummary", ".csv", sep = ""),
+            nOrders = n()) %>% 
+  # create a summary file for review
+  write.csv(file = paste(path_T4, "SystemSummary", ".csv", sep = ""),
           row.names = FALSE)
