@@ -12,9 +12,9 @@
 # 2.	Group by trading systems
 # 3.	analyse last 20 trades
 # 4.	get their profit factor
-# 5.	filter those systems where profit factor is lower than 1.6 write them to the table
-# 6.	run this analysis weekly, every Friday
-# 7.	re-train only the systems 
+# 5.	filter those systems where profit factor is lower than 1.0 write them to the table
+# 6.	run this analysis bi-weekly, every Saturday, etc
+# 7.	re-train only the systems that will pop up in the list...
 
 #  - Only apply to the systems currently under development!
 #  - List of systems under development...
@@ -24,8 +24,8 @@
 library(tidyverse)
 
 # ----------- Main Steps -----------------
-# -- Read trading results from Terminal 2
-# -- Split trading results from Terminal 2 into categories
+# -- Read trading results from Terminal 1
+# -- Split trading results from Terminal 1 into categories
 # -- Depend on conditions allow trades in Terminal 2 and Terminal 4
 # -- Monitor trade results using profit factor on both Terminals when profitable trades continue during 10 trades
 # -- Start/Stop trades on Terminals at desired profit factor levels of the systems
@@ -138,7 +138,7 @@ DFT2$OrderType      <- as.factor(DFT2$OrderType)
 # Implementation of logic
 #-----------------
 #### SORTING AND DECIDE IF SYSTEM NEEDS TO BE RE-TRAINED/RE-OPTIMIZED #### -----------------------------
-# 4. Last 20 orders on DEMO && pr.fact < 1.6 SUGGEST TO RE-TRAINE           -> DFT2_1 
+# 4. Last 20 orders on DEMO && pr.fact < 1.0 SUGGEST TO RE-TRAINE           -> DFT2_1 
 DFT2_1 <- DFT2 %>%  # filtered to contain last 20 orders for each system
   group_by(MagicNumber) %>% 
   arrange(MagicNumber, desc(OrderCloseTime)) %>% 
