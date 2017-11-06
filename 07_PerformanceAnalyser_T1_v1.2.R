@@ -145,7 +145,7 @@ DFT2_1 <- DFT2 %>%  # filtered to contain last 20 orders for each system
   filter(row_number() <= 21) %>% 
   profitFactor(20) %>% 
   ungroup() %>% 
-  filter(PrFact < 1.0) %>% 
+  filter(PrFact < 0.7) %>% 
   select(MagicNumber, PrFact) %>% 
   mutate(ToOptimize = 1) %>% 
   inner_join(y = readxl::read_excel(path = paste0(path_PRJCT, "Setup_20170703.xlsx")), by = c("MagicNumber" = "Magic")) %>% 
