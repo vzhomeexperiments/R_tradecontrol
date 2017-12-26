@@ -25,3 +25,4 @@ vignettes/*.pdf
 .Rproj.user
 07_TradeAnalyser_T1_3_v7.2.Rout
 07_PerformanceAnalyser_T1_v1.2.Rout
+*.Rout
