@@ -1,2 +1,6 @@
 # tradecontrol
-project to control trades. statistics, sentiment analysis, reinforcement learning, etc
+project to control trades. calculating profit factor and statistics
+
+# learn how to apply that tool
+
+https://www.udemy.com/draft/1482406/?couponCode=LAZYTRADE3-20
