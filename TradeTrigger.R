@@ -1,7 +1,8 @@
-# This is a dedicated script for the Course Statistical Analysis of your Trades
+# This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis of Trades
 # Copyright (C) 2018 Vladimir Zhbanko
 
 # PURPOSE: Analyse trade results in Terminal 1 and Trigger or Stop Trades in Terminal 3
+# NOTE:    Results are triggered by writing to the file of the MT4 Trading Terminal
 
 # packages used
 library(lubridate) #install.packages("lubridate")
@@ -12,9 +13,9 @@ library(tidyverse) #install.packages("tidyverse")
 # -- Split trading results from Terminal 1 into categories using profit factor
 # -- Depend on conditions of LAST 10 trades in Terminal 1, allow trades in Terminal 3
 #   -- on last 10 trades in T1
-#   -- enable T3 when Profit factor of 10 trades > 1.6
-#   -- enable T3 when Profit factor of 2 trades > 1.2
-# -- Start/Stop trades on Terminals at MacroEconomic news releases
+#   -- enable T3 when Profit factor of 10 trades > 2
+#   -- disable T3 when Profit Factor of 10 trades < 1.6
+# -- Start/Stop trades on Terminals at MacroEconomic news releases (will be covered in Course #5)
 
 # ----------------
 # Used Functions
@@ -47,32 +48,13 @@ DFT1$OrderType      <- as.factor(DFT1$OrderType)
 DFT1_L <- DFT1 %>%  # filtered to contain last 10 orders for each system
   group_by(MagicNumber) %>% 
   arrange(MagicNumber, desc(OrderCloseTime)) %>% 
-  filter(row_number() <= 11)
-
-# get last 3 trades for each Magic system and arrange orders to have descending order
-DFT1_L2 <- DFT1 %>%  # filtered to contain last 10 orders for each system
-  group_by(MagicNumber) %>% 
-  arrange(MagicNumber, desc(OrderCloseTime)) %>% 
-  filter(row_number() <= 3)
-
-# -------------------------
-# data frame T1 analysis and manipulation
-# -------------------------
-# ----------------
-# Summarise orders
-#-----------------
-# Logic for DEMO and REAL terminal:
-# == Always allow trades on DEMO terminal
-# == Not enable Real account until > than 10 trades on Demo account were completed
-# == Enable Real account when > than 10 trades and profit factor in T1 is > 1.6
-# == Enable Real account when > than 2 trades and profit factor in T1 is > 1.2
-# == Not trade when there is a news macroecon event
+  filter(row_number() <= 11) # +1 for the function to work
 
 # ----------------
 # Implementation of logic
 #-----------------
-#### SORTING AND DECIDE IF TRADING ON THE DEMO ACCOUNT #### -----------------------------
-# DEMO always allow trades                               
+#### SORTING AND DECIDE TRADING ON THE DEMO ACCOUNT #### -----------------------------
+# DEMO always allow trades in Terminal 1                               
 DFT1_L %>%
   group_by(MagicNumber) %>%
   summarise(nOrders = n()) %>%
@@ -83,21 +65,11 @@ DFT1_L %>%
 # ======================= OK
 
 #### DECIDE IF TRADING ON THE T3 ACCOUNT #### -----------------------------
-# Last 10 orders on DEMO && pr.fact > 1.6 start trade T3
+# Last 10 orders on DEMO && pr.fact >= 2 start trade T3
 DFT1_L %>%
   profitFactor(10) %>% 
   ungroup() %>% 
-  filter(PrFact >= 1.6) %>% 
-  select(MagicNumber) %>% 
-  mutate(MagicNumber = MagicNumber + 200, IsEnabled = 1) %>% 
-  # Write command "allow"
-  writeCommandViaCSV(path_T3)
-
-# 4. Last 2 orders on DEMO && pr.fact > 1.2 trade T3         
-DFT1_L2 %>%
-  profitFactor(2) %>% 
-  ungroup() %>% 
-  filter(PrFact >= 1.2) %>% 
+  filter(PrFact >= 2) %>% 
   select(MagicNumber) %>% 
   mutate(MagicNumber = MagicNumber + 200, IsEnabled = 1) %>% 
   # Write command "allow"
@@ -109,16 +81,6 @@ DFT1_L %>%
   profitFactor(10) %>% 
   ungroup() %>% 
   filter(PrFact < 1.6) %>% 
-  select(MagicNumber) %>% 
-  mutate(MagicNumber = MagicNumber + 200, IsEnabled = 0) %>% 
-  # Write command "allow"
-  writeCommandViaCSV(path_T3)
-
-# 4. Last 2 orders on DEMO && pr.fact < 1.2 stop trade T3
-DFT1_L2 %>%
-  profitFactor(2) %>% 
-  ungroup() %>% 
-  filter(PrFact < 1.2) %>% 
   select(MagicNumber) %>% 
   mutate(MagicNumber = MagicNumber + 200, IsEnabled = 0) %>% 
   # Write command "allow"
@@ -140,7 +102,13 @@ DFT3$OrderStartTime <- ymd_hms(DFT3$OrderStartTime)
 DFT3$OrderCloseTime <- ymd_hms(DFT3$OrderCloseTime)
 DFT3$OrderType      <- as.factor(DFT3$OrderType)
 
+
+##========================================
+# -------------------------
 # stopping all systems when macroeconomic event is present
+# this will be covered in the Course #5 of the Lazy Trading Series!
+# -------------------------
+
 DF_NT <- read_csv(file= file.path(path_T1, "01_MacroeconomicEvent.csv"), col_types = "i")
 if(DF_NT[1,1] == 1) {
   # disable trades
@@ -155,7 +123,9 @@ if(DF_NT[1,1] == 1) {
 
 
 ##========================================
+# -------------------------
 ## write a summary T1 and T3
+# -------------------------
 # Terminal 1
 # Summary results
 DFT1 %>%
@@ -168,7 +138,7 @@ DFT1 %>%
 
 # Terminal 3
 # Summary results
-DFT3%>%
+DFT3 %>%
   group_by(MagicNumber) %>%
   summarise(SumProfit = sum(Profit),
             nOrders = n()) %>% 
