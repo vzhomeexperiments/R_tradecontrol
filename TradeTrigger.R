@@ -63,7 +63,6 @@ DFT1_L %>%
   mutate(IsEnabled = 1) %>% 
   # Write command "allow"
   writeCommandViaCSV(path_T1)
-# ======================= OK
 
 #### DECIDE IF TRADING ON THE T3 ACCOUNT #### -----------------------------
 # Last 10 orders on DEMO && pr.fact >= 2 start trade T3
