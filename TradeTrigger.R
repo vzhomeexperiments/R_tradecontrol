@@ -4,8 +4,8 @@
 # PURPOSE: Analyse trade results in Terminal 1 and Trigger or Stop Trades in Terminal 3
 # NOTE:    Results are triggered by writing to the file of the MT4 Trading Terminal
 
-# packages used
-library(lubridate) #install.packages("lubridate")
+# packages used *** make sure to install these packages
+library(lubridate) #install.packages("lubridate") 
 library(tidyverse) #install.packages("tidyverse")
 
 # ----------- Applied Logic -----------------
@@ -20,15 +20,16 @@ library(tidyverse) #install.packages("tidyverse")
 # ----------------
 # Used Functions
 #-----------------
-source("writeCommandViaCSV.R")
-source("profitFactor.R")
+# *** make sure to customize this path
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/profitFactor.R")
 
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
-# terminal 1 path
+# terminal 1 path *** make sure to customize this path
 path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
-# terminal 3 path
+# terminal 3 path *** make sure to customize this path
 path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 
 # -------------------------
