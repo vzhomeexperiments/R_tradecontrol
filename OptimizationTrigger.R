@@ -19,7 +19,7 @@ library(readxl)
 # *************Used Functions******************
 # =============================================
 # *** make sure to customize this path
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/profitFactor.R")
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/profit_factorDF.R")
 
 # =============================================
 # ************End of Used Functions************

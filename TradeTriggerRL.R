@@ -3,18 +3,20 @@
 
 # PURPOSE: Analyse trade results in Terminal 1 and Trigger or Stop Trades in Terminal 3
 # NOTE:    Results are triggered by writing to the file of the MT4 Trading Terminal
+# REINFORCEMENT LEARNING! EXPERIMENTING ONLY! USE AT YOUR OWN RISK!
 
 # packages used *** make sure to install these packages
 library(tidyverse) #install.packages("tidyverse")
 library(lubridate) #install.packages("lubridate") 
+library(ReinforcementLearning) #devtools::install_github("nproellochs/ReinforcementLearning")
+library(magrittr)
+library(openssl)
 
 # ----------- Applied Logic -----------------
 # -- Read trading results from Terminal 1
-# -- Split trading results from Terminal 1 into categories using profit factor
-# -- Depend on conditions of LAST 10 trades in Terminal 1, allow trades in Terminal 3
-#   -- on last 10 trades in T1
-#   -- enable T3 when Profit factor of 10 trades > 2
-#   -- disable T3 when Profit Factor of 10 trades < 1.6
+# -- Rearrange data for RL
+# -- Perform Reinforcement Learning or Update Model with New Data
+# -- Start/Stop trades in Terminal 3 based on New Policy
 # -- Start/Stop trades on Terminals at MacroEconomic news releases (will be covered in Course #5)
 
 # ----------------
@@ -45,6 +47,74 @@ DFT1 <- try(read_csv(file = file.path(path_T1, "OrdersResultsT1.csv"),
 DFT1$OrderStartTime <- ymd_hms(DFT1$OrderStartTime)
 DFT1$OrderCloseTime <- ymd_hms(DFT1$OrderCloseTime)
 DFT1$OrderType      <- as.factor(DFT1$OrderType)
+
+
+
+# Vector with unique Trading Systems
+vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
+
+### ============== FOR EVERY TRADING SYSTEM ###
+for (i in 1:length(vector_systems)) {
+  
+  trading_system <- vector_systems[i]
+  # get only data for one system 
+  trading_systemDF <- DFT1 %>% 
+    filter(MagicNumber == trading_system)
+  
+  # -------------------------
+  # Perform Data Manipulation for RL
+  # -------------------------
+  # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
+  trading_systemDF <- trading_systemDF %>% 
+  group_by(MagicNumber) %>% 
+  mutate(csum=cumsum(Profit)) %>% 
+    # arrange as ascending
+    arrange(OrderCloseTime) %>% 
+    # create column State
+    mutate(NextState = ifelse(Profit>0, "tradewin",
+                              ifelse(Profit<0, "tradeloss", NA)),
+           Action = ifelse(csum > 0, "ON",
+                           ifelse(csum < 0, "OFF", NA)),
+           Reward =  Profit,
+           State = lag(NextState)) %>% # State column will be shifted down
+    # remove row with empty data
+    na.omit() %>% 
+    arrange(desc(OrderCloseTime)) %>% 
+    ungroup() %>% 
+    select(State, Action, Reward, NextState) %>% 
+    as.data.frame.data.frame()
+    
+
+  # -------------------------
+  # Perform Reinforcement Learning
+  # -------------------------
+  # get the unique id of the last trade
+  recent_name <- trading_systemDF %>% head(1) %>% as.character() %>% as.vector() %>% paste(collapse = "") %>% sha1()
+  
+  # Define state and action sets
+  states <- c("tradeloss", "tradewin")
+  actions <- c("ON", "OFF")
+  
+  # Define reinforcement learning parameters
+  control <- list(alpha = 0.1, gamma = 0.5, epsilon = 0.1)
+  
+  
+  
+  #==== Note: use function?
+  
+  
+  
+  # -------------------------
+  # Write Decision/Update Policy
+  # -------------------------
+  
+
+
+}
+### ============== END of FOR EVERY TRADING SYSTEM ###
+
+
+
 
 # get last 10 trades for each Magic system and arrange orders to have descending order
 DFT1_L <- DFT1 %>%  # filtered to contain last 10 orders for each system

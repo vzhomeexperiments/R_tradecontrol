@@ -7,7 +7,7 @@ date: 2018-01-30
 
 # Reinforcement Learning
 
-Implementing [vignette](https://cran.r-project.org/web/packages/ReinforcementLearning/vignettes/ReinforcementLearning.html)
+Implementing and understanding Generic Example from: [vignette](https://cran.r-project.org/web/packages/ReinforcementLearning/vignettes/ReinforcementLearning.html)
 
 ## Goal
 

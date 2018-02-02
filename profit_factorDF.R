@@ -35,7 +35,7 @@ profit_factorDF <- function(x, numOrders){
   # generate DF containing profit factor of all systems
   DF <- DF_P %>%
     full_join(DF_L, by = "MagicNumber")
-  # replace any NA with zeroes!
+  # replace any NA with 1!
   DF[is.na(DF)] <- 1
   # calculate profit factors of the each system!
   DF_PF <- DF%>%
