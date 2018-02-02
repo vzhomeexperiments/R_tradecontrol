@@ -2,14 +2,14 @@
 #===============================
 # PROFIT FACTOR FUNCTION
 #===============================
-# function that returns the profit factors of the systems
+# function that returns the profit factors of the systems in a form of DataFrame
 #
 # x - data frame with orders
 #     df must contain MagicNumber and Profit columns!
 # numOrders - desired number of orders to base profit factor calculation
 # 
 #
-profitFactor <- function(x, numOrders){
+profit_factorDF <- function(x, numOrders){
   # generate DF with only MagicNumbers when > 10 trades and all trades are losers
   DF_L <- x %>%
     group_by(MagicNumber) %>%

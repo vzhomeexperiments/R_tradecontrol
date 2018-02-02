@@ -1,12 +1,12 @@
-# This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis of Trades
+# This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis and Control of Trades
 # Copyright (C) 2018 Vladimir Zhbanko
 
 # PURPOSE: Analyse trade results in Terminal 1 and Trigger or Stop Trades in Terminal 3
 # NOTE:    Results are triggered by writing to the file of the MT4 Trading Terminal
 
 # packages used *** make sure to install these packages
-library(lubridate) #install.packages("lubridate") 
 library(tidyverse) #install.packages("tidyverse")
+library(lubridate) #install.packages("lubridate") 
 
 # ----------- Applied Logic -----------------
 # -- Read trading results from Terminal 1
@@ -22,7 +22,8 @@ library(tidyverse) #install.packages("tidyverse")
 #-----------------
 # *** make sure to customize this path
 source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/profitFactor.R")
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/profit_factor.R")
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/profit_factorDF.R")
 
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
@@ -35,10 +36,11 @@ path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
-DFT1 <- try(read_csv(file = paste(path_T1, "OrdersResultsT1.csv", sep = ""), 
+DFT1 <- try(read_csv(file = file.path(path_T1, "OrdersResultsT1.csv"), 
                      col_names = c("MagicNumber", "TicketNumber", "OrderStartTime", 
                                    "OrderCloseTime", "Profit", "Symbol", "OrderType"),
-                     col_types = "iiccdci"), silent = TRUE)
+                     col_types = "iiccdci"), 
+            silent = TRUE)
 
 # data frame preparation
 DFT1$OrderStartTime <- ymd_hms(DFT1$OrderStartTime)
@@ -50,7 +52,7 @@ DFT1_L <- DFT1 %>%  # filtered to contain last 10 orders for each system
   group_by(MagicNumber) %>% 
   arrange(MagicNumber, desc(OrderCloseTime)) %>% 
   filter(row_number() <= 11) # +1 for the function to work
-
+  
 # ----------------
 # Implementation of logic
 #-----------------
@@ -67,7 +69,7 @@ DFT1_L %>%
 #### DECIDE IF TRADING ON THE T3 ACCOUNT #### -----------------------------
 # Last 10 orders on DEMO && pr.fact >= 2 start trade T3
 DFT1_L %>%
-  profitFactor(10) %>% 
+  profit_factorDF(10) %>% 
   ungroup() %>% 
   filter(PrFact >= 2) %>% 
   select(MagicNumber) %>% 
@@ -78,29 +80,13 @@ DFT1_L %>%
 #### DECIDE IF NOT TO TRADING ON THE T3 ACCOUNT #### -----------------------------
 # 4. Last 10 orders on DEMO && pr.fact < 1.6 stop trade T3
 DFT1_L %>%
-  profitFactor(10) %>% 
+  profit_factorDF(10) %>% 
   ungroup() %>% 
   filter(PrFact < 1.6) %>% 
   select(MagicNumber) %>% 
   mutate(MagicNumber = MagicNumber + 200, IsEnabled = 0) %>% 
   # Write command "allow"
   writeCommandViaCSV(path_T3)
-
-
-##========================================
-# read data from trades in terminal 3
-# -------------------------
-#try(read.csv(file = paste(path_T3, "OrdersResultsT3.csv", sep = ""), header = FALSE), silent = TRUE)
-# use try to avoid error!!!
-DFT3 <- try(read_csv(file = paste(path_T3, "OrdersResultsT3.csv", sep = ""),
-                     col_names = c("MagicNumber", "TicketNumber", "OrderStartTime", 
-                                   "OrderCloseTime", "Profit", "Symbol", "OrderType"),
-                     col_types = "iiccdci"), silent = TRUE)
-
-# data frame preparation
-DFT3$OrderStartTime <- ymd_hms(DFT3$OrderStartTime)
-DFT3$OrderCloseTime <- ymd_hms(DFT3$OrderCloseTime)
-DFT3$OrderType      <- as.factor(DFT3$OrderType)
 
 
 ##========================================
@@ -116,32 +102,8 @@ if(DF_NT[1,1] == 1) {
     group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0)
   DF_DisableT3 <- DFT3 %>% 
     group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0)
-  
+  # write commands to disable systems
   writeCommandViaCSV(DF_DisableT1, path_T1)
   writeCommandViaCSV(DF_DisableT3, path_T3)
 }
 
-
-##========================================
-# -------------------------
-## write a summary T1 and T3
-# -------------------------
-# Terminal 1
-# Summary results
-DFT1 %>%
-  group_by(MagicNumber) %>%
-  summarise(SumProfit = sum(Profit),
-            nOrders = n()) %>% 
-  # create a summary file for review
-  write.csv(file = paste(path_T2, "SystemSummary", ".csv", sep = ""),
-            row.names = FALSE)
-
-# Terminal 3
-# Summary results
-DFT3 %>%
-  group_by(MagicNumber) %>%
-  summarise(SumProfit = sum(Profit),
-            nOrders = n()) %>% 
-  # create a summary file for review
-  write.csv(file = paste(path_T3, "SystemSummary", ".csv", sep = ""),
-          row.names = FALSE)

@@ -13,8 +13,11 @@
 
 profit_factor <- function(x){
   
-  sum(x[x>0])/(0.0001+sum(abs(x[x<0])))
+  res <- sum(x[x>0])/(0.0001+sum(abs(x[x<0])))
   
+  # limit profit factor to maximum value of 10 (in case no losses)
+  if(res > 100) res <- 10 
+  return(res)
   
   }
   

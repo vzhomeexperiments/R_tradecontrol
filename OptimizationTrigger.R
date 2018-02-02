@@ -38,7 +38,7 @@ path_PRJCT <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_B/"
 # -------------------------
 # read data from trades in terminal 2
 # -------------------------
-DFT1 <- try(read_csv(file = paste(path_T1, "OrdersResultsT1.csv", sep = ""), 
+DFT1 <- try(read_csv(file = paste0(path_T1, "OrdersResultsT1.csv"), 
                      col_names = c("MagicNumber", "TicketNumber", "OrderStartTime", 
                                    "OrderCloseTime", "Profit", "Symbol", "OrderType"),
                      col_types = "iiccdci"), silent = TRUE)
@@ -71,7 +71,7 @@ DFT1 %>%  # filtered to contain last 20 orders for each system
   group_by(MagicNumber) %>% 
   arrange(MagicNumber, desc(OrderCloseTime)) %>% 
   filter(row_number() <= 21) %>% 
-  profitFactor(20) %>% 
+  profit_factorDF(20) %>% 
   ungroup() %>% 
   filter(PrFact < 0.7) %>% 
   select(MagicNumber, PrFact) %>% 
