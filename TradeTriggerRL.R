@@ -91,50 +91,13 @@ for (i in 1:length(vector_systems)) {
   # -------------------------
   ### ** ALL TRADES BY THIS SYSTEM **
   # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
-  trading_systemDFRL <- trading_systemDF %>% 
-  group_by(MagicNumber) %>% 
-  mutate(csum=cumsum(Profit)) %>% 
-    # arrange as ascending
-    arrange(OrderCloseTime) %>% 
-    # we will always consider more recent history
-    #tail(20) %>% 
-    # create column State
-    mutate(NextState = ifelse(Profit>0, "tradewin",
-                              ifelse(Profit<0, "tradeloss", NA)),
-           # very simple logic: whenever cumulative sum is positive - we trade...
-           Action = ifelse(csum > 0, "ON",
-                           ifelse(csum < 0, "OFF", NA)),
-           Reward =  Profit,
-           State = lag(NextState)) %>% # State column will be shifted down
-    # remove row with empty data
-    na.omit() %>% 
-    ungroup() %>% # to get rid of grouping column
-    select(State, Action, Reward, NextState) %>% 
-    as.data.frame.data.frame() # ReinforcementLearning function seems to only work with 'dataframe'
-    
+  
+  trading_systemDFRL <- trading_systemDF %>% data_4_RL(all_trades = TRUE)
+  
   ### ** RECENT TRADES BY THIS SYSTEM **
   # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
-  trading_systemDFRL20 <- trading_systemDF %>% 
-    group_by(MagicNumber) %>% 
-    mutate(csum=cumsum(Profit)) %>% 
-    # arrange as ascending
-    arrange(OrderCloseTime) %>% 
-    # we will always consider more recent history
-    tail(20) %>% 
-    # create column State
-    mutate(NextState = ifelse(Profit>0, "tradewin",
-                              ifelse(Profit<0, "tradeloss", NA)),
-           # very simple logic: whenever cumulative sum is positive - we trade...
-           Action = ifelse(csum > 0, "ON",
-                           ifelse(csum < 0, "OFF", NA)),
-           Reward =  Profit,
-           State = lag(NextState)) %>% # State column will be shifted down
-    # remove row with empty data
-    na.omit() %>% 
-    ungroup() %>% # to get rid of grouping column
-    select(State, Action, Reward, NextState) %>% 
-    as.data.frame.data.frame() # ReinforcementLearning function seems to only work with 'dataframe'
-  
+  trading_systemDFRL20 <- trading_systemDF %>% data_4_RL(all_trades = FALSE, num_trades = 20)
+    
   # -------------------------
   # Perform Reinforcement Learning
   # -------------------------
