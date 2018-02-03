@@ -1,5 +1,6 @@
 # This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis and Control of Trades
 # Copyright (C) 2018 Vladimir Zhbanko
+# Preferrably to be used only with the courses Lazy Trading see: https://vladdsm.github.io/myblog_attempt/index.html
 
 # PURPOSE: Analyse trade results in Terminal 1 and Trigger or Stop Trades in Terminal 3
 # NOTE:    Results are triggered by writing to the file of the MT4 Trading Terminal
@@ -20,11 +21,12 @@ library(openssl)
 # -- Start/Stop trades on Terminals at MacroEconomic news releases (will be covered in Course #5)
 
 # ----------------
-# Used Functions
+# Used Functions (to make code more compact)
 #-----------------
 # *** make sure to customize this path
-# source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
-# source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/profit_factorDF.R")
+ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
+ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/apply_policy.R")
+ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/data_4_RL.R")
 
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
@@ -50,14 +52,27 @@ DFT1$OrderStartTime <- ymd_hms(DFT1$OrderStartTime)
 DFT1$OrderCloseTime <- ymd_hms(DFT1$OrderCloseTime)
 DFT1$OrderType      <- as.factor(DFT1$OrderType)
 
-
-
 # Vector with unique Trading Systems
 vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
 
+# -------------------------
+# read data from trades in terminal 3
+# -------------------------
+DFT3 <- try(read_csv(file = file.path(path_T3, "OrdersResultsT3.csv"), 
+                     col_names = c("MagicNumber", "TicketNumber", "OrderStartTime", 
+                                   "OrderCloseTime", "Profit", "Symbol", "OrderType"),
+                     col_types = "iiccdci"), 
+            silent = TRUE)
+
+# data frame preparation
+DFT3$OrderStartTime <- ymd_hms(DFT3$OrderStartTime)
+DFT3$OrderCloseTime <- ymd_hms(DFT3$OrderCloseTime)
+DFT3$OrderType      <- as.factor(DFT3$OrderType)
+
+
 ### ============== FOR EVERY TRADING SYSTEM ###
 for (i in 1:length(vector_systems)) {
-  
+  # i <- 2
   trading_system <- vector_systems[i]
   # get only data for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
@@ -74,10 +89,34 @@ for (i in 1:length(vector_systems)) {
   # -------------------------
   # Perform Data Manipulation for RL
   # -------------------------
+  ### ** ALL TRADES BY THIS SYSTEM **
   # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
-  trading_systemDF <- trading_systemDF %>% 
+  trading_systemDFRL <- trading_systemDF %>% 
   group_by(MagicNumber) %>% 
   mutate(csum=cumsum(Profit)) %>% 
+    # arrange as ascending
+    arrange(OrderCloseTime) %>% 
+    # we will always consider more recent history
+    #tail(20) %>% 
+    # create column State
+    mutate(NextState = ifelse(Profit>0, "tradewin",
+                              ifelse(Profit<0, "tradeloss", NA)),
+           # very simple logic: whenever cumulative sum is positive - we trade...
+           Action = ifelse(csum > 0, "ON",
+                           ifelse(csum < 0, "OFF", NA)),
+           Reward =  Profit,
+           State = lag(NextState)) %>% # State column will be shifted down
+    # remove row with empty data
+    na.omit() %>% 
+    ungroup() %>% # to get rid of grouping column
+    select(State, Action, Reward, NextState) %>% 
+    as.data.frame.data.frame() # ReinforcementLearning function seems to only work with 'dataframe'
+    
+  ### ** RECENT TRADES BY THIS SYSTEM **
+  # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
+  trading_systemDFRL20 <- trading_systemDF %>% 
+    group_by(MagicNumber) %>% 
+    mutate(csum=cumsum(Profit)) %>% 
     # arrange as ascending
     arrange(OrderCloseTime) %>% 
     # we will always consider more recent history
@@ -92,12 +131,10 @@ for (i in 1:length(vector_systems)) {
            State = lag(NextState)) %>% # State column will be shifted down
     # remove row with empty data
     na.omit() %>% 
-    arrange(desc(OrderCloseTime)) %>% # this is not really interesting as RL uses random sampling
     ungroup() %>% # to get rid of grouping column
     select(State, Action, Reward, NextState) %>% 
     as.data.frame.data.frame() # ReinforcementLearning function seems to only work with 'dataframe'
-    
-
+  
   # -------------------------
   # Perform Reinforcement Learning
   # -------------------------
@@ -106,7 +143,7 @@ for (i in 1:length(vector_systems)) {
   recent_name_file <- paste0(path_RL, recent_name)
   
   # Define state and action sets
-  states <- c("tradeloss", "tradewin")
+  states <- c("tradewin", "tradeloss")
   actions <- c("ON", "OFF")
   
   # Define reinforcement learning parameters (see explanation below or in vignette)
@@ -117,8 +154,9 @@ for (i in 1:length(vector_systems)) {
   # iter 
   # ----- 
   # to uncommend desired learning parameters:
-  #control <- list(alpha = 0.6, gamma = 0.3, epsilon = 0.3)
-  control <- list(alpha = 0.9, gamma = 0.9, epsilon = 0.1)
+  #control <- list(alpha = 0.5, gamma = 0.5, epsilon = 0.5)
+  #control <- list(alpha = 0.9, gamma = 0.9, epsilon = 0.9)
+  control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1)
   # -----
   # -----------------------------------------------------------------------------
   #==============================================================================
@@ -126,51 +164,29 @@ for (i in 1:length(vector_systems)) {
   if(!file.exists(recent_name_file)){
   
   # perform RL
-  model <- ReinforcementLearning(trading_systemDF, s = "State", a = "Action", r = "Reward", s_new = "NextState",iter = 1, control = control)
+  model <- ReinforcementLearning(trading_systemDFRL, s = "State", a = "Action", r = "Reward", s_new = "NextState",iter = 1, control = control)
   
-  # policy(model)
-  # do not do anything at the first run...
+  # apply policy based on model
+  apply_policy(trading_system = trading_system, model = model, last_trade = latest_trade, path_sandbox = path_T3)
   
   # save model to file
-  write_rds(model, paste0(path_RL, recent_name))
+  write_rds(model, recent_name_file)
   } else { 
     # perform model update
     
     # update model
     model_old <- read_rds(recent_name_file)
     # model on recent data
-    model_new <- ReinforcementLearning(trading_systemDF, s = "State", a = "Action", r = "Reward",
+    model_new <- ReinforcementLearning(trading_systemDFRL20, s = "State", a = "Action", r = "Reward",
                                        s_new = "NextState", control = control, iter = 1, model = model_old)
     
     # write new model to file
-    write_rds(model, paste0(path_RL, recent_name))
+    write_rds(model_new, recent_name_file)
     
-      # -------------------------
+    # -------------------------
     # Apply policy
     # -------------------------
-    # recover decision based on updated policy
-    decision <- policy(model_new)[latest_trade]
-    # build dataframe for sending to the file
-    if(decision == "ON"){
-      decision_DF <- data.frame(MagicNumber = trading_system + 200,
-                                IsEnabled = 1)
-      # -------------------------
-      # Write Decision/Update Policy
-      # -------------------------
-      # write the file for MQL4 usage
-      write.csv(decision_DF, file = paste0(path_T3, "SystemControl", as.character(decision_DF[1, 1]), ".csv"),
-                row.names = FALSE)
-      
-    } else {
-      decision_DF <- data.frame(MagicNumber = trading_system + 200,
-                                IsEnabled = 0)
-         # -------------------------
-      # Write Decision/Update Policy
-      # -------------------------
-      # write the file for MQL4 usage
-      write.csv(decision_DF, file = paste0(path_T3, "SystemControl", as.character(decision_DF[1, 1]), ".csv"),
-                row.names = FALSE)
-    }
+    apply_policy(trading_system = trading_system, model = model_new, last_trade = latest_trade, path_sandbox = path_T3)
     
     
     }
@@ -203,15 +219,15 @@ for (i in 1:length(vector_systems)) {
 # this will be covered in the Course #5 of the Lazy Trading Series!
 # -------------------------
 
-# DF_NT <- read_csv(file= file.path(path_T1, "01_MacroeconomicEvent.csv"), col_types = "i")
-# if(DF_NT[1,1] == 1) {
-#   # disable trades
-#   DF_DisableT1 <- DFT1 %>%
-#     group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0)
-#   DF_DisableT3 <- DFT3 %>%
-#     group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0)
-#   # write commands to disable systems
-#   writeCommandViaCSV(DF_DisableT1, path_T1)
-#   writeCommandViaCSV(DF_DisableT3, path_T3)
-# }
+DF_NT <- read_csv(file= file.path(path_T1, "01_MacroeconomicEvent.csv"), col_types = "i")
+if(DF_NT[1,1] == 1) {
+  # disable trades
+  DF_DisableT1 <- DFT1 %>%
+    group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0)
+  DF_DisableT3 <- DFT3 %>%
+    group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0)
+  # write commands to disable systems
+  writeCommandViaCSV(DF_DisableT1, path_T1)
+  writeCommandViaCSV(DF_DisableT3, path_T3)
+}
 
