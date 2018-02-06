@@ -87,8 +87,21 @@ DFT1_L %>%
   # Write command "allow"
   writeCommandViaCSV(path_T3)
 
-
+#write_rds(DFT1_L, "test_data_profit_factorDF.rds")
 ##========================================
+# -------------------------
+# read data from trades in terminal 3
+# -------------------------
+DFT3 <- try(read_csv(file = file.path(path_T3, "OrdersResultsT3.csv"), 
+                     col_names = c("MagicNumber", "TicketNumber", "OrderStartTime", 
+                                   "OrderCloseTime", "Profit", "Symbol", "OrderType"),
+                     col_types = "iiccdci"), 
+            silent = TRUE)
+
+# data frame preparation
+DFT3$OrderStartTime <- ymd_hms(DFT3$OrderStartTime)
+DFT3$OrderCloseTime <- ymd_hms(DFT3$OrderCloseTime)
+DFT3$OrderType      <- as.factor(DFT3$OrderType)
 # -------------------------
 # stopping all systems when macroeconomic event is present
 # this will be covered in the Course #5 of the Lazy Trading Series!

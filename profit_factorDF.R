@@ -6,8 +6,9 @@
 #
 # x - data frame with orders
 #     df must contain MagicNumber and Profit columns!
+# x <- read_rds("test_data_profit_factorDF.rds")
 # numOrders - desired number of orders to base profit factor calculation
-# 
+# numOrders <- 10
 #
 profit_factorDF <- function(x, numOrders){
   # generate DF with only MagicNumbers when > 10 trades and all trades are losers
