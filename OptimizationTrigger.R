@@ -1,11 +1,11 @@
 ## This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis of Trades
 # Copyright (C) 2018 Vladimir Zhbanko
 
-# PURPOSE: Analyse trade results in Terminal 1. Write a summary, indicate when to optimize systems
+# PURPOSE: Analyse trade results in Terminal 1. Indicate when to optimize non performing systems
 # NOTE:    Results are written in the Trading System Version Control Repository. 
 #          Important: Trading System version control must contain a list of trading systems in use
 
-# load packages
+# load packages. To install run command e.g.: install.packages("readxl")
 library(tidyverse)
 library(lubridate)
 library(readxl)
@@ -30,8 +30,7 @@ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/profit_factorD
 # -------------------------
 # terminal 1 path
 path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
-# terminal 3 path
-path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
+
 # trading system project folder
 path_PRJCT <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_B/"
 
@@ -52,19 +51,7 @@ DFT1$OrderType      <- as.factor(DFT1$OrderType)
 # -------------------------
 # data frame T1 analysis and manipulation
 # -------------------------
-# ----------------
-# Summarise orders acc.to the logic below
-#-----------------
-# 1.	ON TERMINAL 1
-# 2.	Group by trading systems
-# 3.	analyse last 20 trades --> data is in *DFT1*
-# 4.	get their profit factor
-# 5.	filter those systems where profit factor is lower than 0.7 
-# 6.	run this analysis weekly, every Friday
-# 7.	re-train only those systems with lower factor
-# ----------------
-# Implementation of logic
-#-----------------
+
 #### SORTING AND DECIDE IF SYSTEM NEEDS TO BE RE-TRAINED/RE-OPTIMIZED #### -----------------------------
 # 4. Last 20 orders on DEMO && pr.fact < 0.7 SUGGEST TO RE-TRAINE
 DFT1 %>%  # filtered to contain last 20 orders for each system
