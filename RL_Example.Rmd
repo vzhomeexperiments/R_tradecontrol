@@ -1,0 +1,163 @@
+---
+title: "RL-Example"
+output: html_notebook
+author: Vladimir Zhbanko
+date: 2018-02-09
+---
+
+# Reinforcement Learning Generic Example
+
+Implementing and understanding Generic Example from: [vignette](https://cran.r-project.org/web/packages/ReinforcementLearning/vignettes/ReinforcementLearning.html)
+
+## Goal
+
+This example just aimed to understand how to create a system capable to move into specific direction using 'experience' of interaction with the `Environment`. Example will be based on:
+
+* Generic states map
+* Environment simulating this map will be defined with a function
+* Generating data of `Interactions` of our hypothetical robot called `Experience`
+* Learning to move in that environment by using generated `Experience`
+* Improving learning about the environment...
+
+## Example of Implementation in R
+
+Make sure to install package **ReinforcementLearning**
+
+```{r}
+# package installation
+#devtools::install_github("nproellochs/ReinforcementLearning")
+library(ReinforcementLearning)
+```
+
+## Data format
+
+This data set can be used to give us the idea how the data for RL should look like
+
+```{r}
+data("tictactoe")
+head(tictactoe, 5)
+```
+
+We will need to generate data like in our format
+
+## Description of the environment
+
+In our situation we will need to move our `Robot` to the destination in the cell `s4`. This is how our state will look like:
+
+` |———–-----|`
+` | s1 | s4 |`
+` | s2   s3 |`
+` |———–-----|`
+
+Notice that there is a barrier between s1 and s4...
+
+So far we know that we can have 4 states and robot can move into 4 directions:
+
+```{r}
+# Define state and action sets
+states <- c("s1", "s2", "s3", "s4")
+actions <- c("up", "down", "left", "right")
+```
+
+RL model should be able to provide direction to our `Robot` and guide him/her to the cell 's4'...
+
+## Dynamics of Environment
+
+In real case `Robot` will need to start interacting with `Environment` generating data to learn using sensors. However in our case package already provide specific function named `gridworldEnvironment`. We can call this function just to see it:
+
+```{r}
+env <- gridworldEnvironment
+print(env)
+```
+
+This function can be modified for any other RL problem. Let's see together what this function does. Essentially it will get the state of the robot and it's action as input. Depending on those conditions function will output the list of next state and reward as an output...
+
+## Simulating Interaction with Environment
+
+Apparently it's possible to sample 'sequences from experience'
+
+```{r}
+# Sample N = 1000 random sequences from the environment
+set.seed(69)
+data <- sampleExperience(N = 1000, env = env, states = states, actions = actions)
+head(data)
+```
+
+in this example we can see that passing from state s3 with action 'up' will result in stete s4 with reward 10. In all other cases the reward is slightly negative...
+
+## Reinforcement learning parameters
+
+As we 
+
+```{r}
+# Define reinforcement learning parameters
+control <- list(alpha = 0.1, gamma = 0.5, epsilon = 0.1)
+```
+
+```{r}
+# Perform reinforcement learning
+model <- ReinforcementLearning(data, s = "State", a = "Action", r = "Reward", 
+                               s_new = "NextState", control = control)
+```
+ 
+model is ready
+
+The result of the process provide best state-action table with optimal policy
+
+```{r}
+# Print result
+print(model)
+```
+
+we can print also best possible policy:
+```{r}
+policy(model)
+```
+
+## Updating Existing Policy with New data
+
+
+
+```{r}
+# Define reinforcement learning parameters
+control <- list(alpha = 0.1, gamma = 0.5, epsilon = 0.1)
+
+# Sample N = 1000 sequences from the environment using epsilon-greedy action selection
+data_new <- sampleExperience(N = 1000, env = env, states = states, actions = actions, 
+                             model = model, actionSelection = "epsilon-greedy", 
+                             control = control)
+
+head(data_new)
+
+```
+
+Update model with new data containing the same policy
+
+```{r}
+# Update the existing policy using new training data
+model_new <- ReinforcementLearning(data_new, s = "State", a = "Action", r = "Reward", 
+                                   s_new = "NextState", control = control, model = model)
+
+# Print result
+print(model_new)
+```
+
+Now the reward is much higher!
+
+```{r}
+summary(model_new)
+```
+
+```{r}
+plot(model_new)
+```
+
+## Parameters explained
+
+"alpha" The learning rate, set between 0 and 1. Setting it to 0 means that the Q-values are never updated and, hence, nothing is learned. Setting a high value, such as 0.9, means that learning can occur quickly.
+
+"gamma" Discount factor, set between 0 and 1. Determines the importance of future rewards. A factor of 0 will render the agent short-sighted by only considering current rewards, while a factor approaching 1 will cause it to strive for a greater reward over the long term.
+
+"epsilon" Exploration parameter, set between 0 and 1. Defines the exploration mechanism in ϵϵ-greedy action selection. In this strategy, the agent explores the environment by selecting an action at random with probability ϵϵ. Alternatively, the agent exploits its current knowledge by choosing the optimal action with probability 1−ϵ1−ϵ. This parameter is only required for sampling new experience based on an existing policy.
+
+"iter" Number of repeated learning iterations. Iter is an integer greater than 0. The default is set to 1.
