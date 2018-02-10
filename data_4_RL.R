@@ -7,7 +7,7 @@
 # The NextState for every trade will be obtained from the simple profit checking
 
 # Function was created to make code more compact
-
+# x <- read_rds("test_data_4RL.rds")
 # Notabene: No fail safe mechanism at the moment! Use on your own risk!!!
 
 data_4_RL <- function(x, all_trades = TRUE, num_trades = 20){
@@ -16,11 +16,10 @@ if(all_trades == TRUE){
   
 trading_systemDFRL <- x %>% 
   group_by(MagicNumber) %>% 
-  mutate(csum=cumsum(Profit)) %>% 
   # arrange as ascending
   arrange(OrderCloseTime) %>% 
-  # we will always consider more recent history
-  #tail(20) %>% 
+  # create column with cumulative profit
+  mutate(csum=cumsum(Profit)) %>% 
   # create column State
   mutate(NextState = ifelse(Profit>0, "tradewin",
                             ifelse(Profit<0, "tradeloss", NA)),
@@ -44,9 +43,10 @@ if(all_trades == FALSE){
   # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
   trading_systemDFRL <- x %>% 
     group_by(MagicNumber) %>% 
-    mutate(csum=cumsum(Profit)) %>% 
     # arrange as ascending
     arrange(OrderCloseTime) %>% 
+    # create column with cumulative profit
+    mutate(csum=cumsum(Profit)) %>% 
     # we will always consider more recent history
     tail(num_trades) %>% 
     # create column State

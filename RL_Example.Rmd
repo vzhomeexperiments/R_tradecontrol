@@ -1,8 +1,10 @@
 ---
 title: "RL-Example"
-output: html_notebook
-author: Vladimir Zhbanko
-date: 2018-02-09
+author: "Vladimir Zhbanko"
+date: '2018-02-09'
+output:
+  html_document:
+    df_print: paged
 ---
 
 # Reinforcement Learning Generic Example
@@ -25,6 +27,7 @@ Make sure to install package **ReinforcementLearning**
 
 ```{r}
 # package installation
+#install.packages("devtools")
 #devtools::install_github("nproellochs/ReinforcementLearning")
 library(ReinforcementLearning)
 ```
@@ -46,6 +49,9 @@ In our situation we will need to move our `Robot` to the destination in the cell
 
 ` |———–-----|`
 ` | s1 | s4 |`
+` |———–-----|`
+
+` |———–-----|`
 ` | s2   s3 |`
 ` |———–-----|`
 
@@ -70,6 +76,11 @@ env <- gridworldEnvironment
 print(env)
 ```
 
+```{r}
+gridworldEnvironment("s4", "down")
+```
+
+
 This function can be modified for any other RL problem. Let's see together what this function does. Essentially it will get the state of the robot and it's action as input. Depending on those conditions function will output the list of next state and reward as an output...
 
 ## Simulating Interaction with Environment
@@ -87,12 +98,16 @@ in this example we can see that passing from state s3 with action 'up' will resu
 
 ## Reinforcement learning parameters
 
-As we 
+As we already know there are 3 parameters defining how the system will learn. We will define them using this list
 
 ```{r}
 # Define reinforcement learning parameters
 control <- list(alpha = 0.1, gamma = 0.5, epsilon = 0.1)
 ```
+
+## Reinforcement learning
+
+Once we have data of our 'Experience' we defined how the system will learn... yes, we can learn
 
 ```{r}
 # Perform reinforcement learning
@@ -100,38 +115,70 @@ model <- ReinforcementLearning(data, s = "State", a = "Action", r = "Reward",
                                s_new = "NextState", control = control)
 ```
  
-model is ready
+model is ready. Let's explore it! Probably the most important thing to understand is that model calculated possible reward by moving from one state into all possible directions. For example this block below will show this reward of all movements from state s1:
 
-The result of the process provide best state-action table with optimal policy
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+model$Q_hash$s1
+```
+
+The highest one is obtained when we perform action 'down'
+
+This concept is also summarized with state-action table:
 
 ```{r}
 # Print result
 print(model)
 ```
 
-we can print also best possible policy:
+**Try to spot what are the highest values!**
+
+## Reinforcement Learning Policy
+
+The RL result can be extracted by using the policy function:
+
 ```{r}
 policy(model)
 ```
 
-## Updating Existing Policy with New data
+## How to use RL Policy?
 
-
+Policy of the model can be used to select best action based on the current state. For example:
 
 ```{r}
-# Define reinforcement learning parameters
+next_action <- policy(model)["s1"]
+next_action
+```
+
+```{r}
+next_action <- policy(model)["s4"]
+next_action
+```
+
+
+
+
+## Updating Existing Policy with New data
+
+Once the new data will be coming we can update our model. In this 'simulated' example we will generate new data set by using the same environment function and current model
+
+```{r}
+# pay attention to our epsilon parameter!
 control <- list(alpha = 0.1, gamma = 0.5, epsilon = 0.1)
+# e.g. try to change epsilon parameter and use list control_ instead. How it will change Learning Rate?
+control_ <- list(alpha = 0.1, gamma = 0.5, epsilon = 0.9)
 
 # Sample N = 1000 sequences from the environment using epsilon-greedy action selection
 data_new <- sampleExperience(N = 1000, env = env, states = states, actions = actions, 
                              model = model, actionSelection = "epsilon-greedy", 
                              control = control)
 
-head(data_new)
+head(data_new, 2)
 
 ```
 
-Update model with new data containing the same policy
+## Update model with new data
+
+New data can be used to update existing model:
 
 ```{r}
 # Update the existing policy using new training data
@@ -142,7 +189,7 @@ model_new <- ReinforcementLearning(data_new, s = "State", a = "Action", r = "Rew
 print(model_new)
 ```
 
-Now the reward is much higher!
+Now the reward is much higher
 
 ```{r}
 summary(model_new)
@@ -152,12 +199,23 @@ summary(model_new)
 plot(model_new)
 ```
 
+## Conclusion
+
+We had fully simulated Environment (very boring!) however now we know how:
+
+- data should look like
+- how to train model
+- how to use policy or how to derive best action by knowing current state
+
+This knowledge can be used to simulate completely different environment...
+
 ## Parameters explained
 
-"alpha" The learning rate, set between 0 and 1. Setting it to 0 means that the Q-values are never updated and, hence, nothing is learned. Setting a high value, such as 0.9, means that learning can occur quickly.
+**"alpha"** The learning rate, set between 0 and 1. Setting it to 0 means that the Q-values are never updated and, hence, nothing is learned. Setting a high value, such as 0.9, means that learning can occur quickly.
 
-"gamma" Discount factor, set between 0 and 1. Determines the importance of future rewards. A factor of 0 will render the agent short-sighted by only considering current rewards, while a factor approaching 1 will cause it to strive for a greater reward over the long term.
+**"gamma"** Discount factor, set between 0 and 1. Determines the importance of future rewards. A factor of 0 will render the agent short-sighted by only considering current rewards, while a factor approaching 1 will cause it to strive for a greater reward over the long term.
 
-"epsilon" Exploration parameter, set between 0 and 1. Defines the exploration mechanism in ϵϵ-greedy action selection. In this strategy, the agent explores the environment by selecting an action at random with probability ϵϵ. Alternatively, the agent exploits its current knowledge by choosing the optimal action with probability 1−ϵ1−ϵ. This parameter is only required for sampling new experience based on an existing policy.
+**"epsilon"** Exploration parameter, set between 0 and 1. Defines the exploration mechanism in ϵϵ-greedy action selection. In this strategy, the agent explores the environment by selecting an action at random with probability ϵϵ. Alternatively, the agent exploits its current knowledge by choosing the optimal action with probability 1−ϵ1−ϵ. This parameter is only required for sampling new experience based on an existing policy.
 
-"iter" Number of repeated learning iterations. Iter is an integer greater than 0. The default is set to 1.
+**"iter"** Number of repeated learning iterations. Iter is an integer greater than 0. The default is set to 1.
+

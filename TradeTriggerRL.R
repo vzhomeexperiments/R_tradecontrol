@@ -1,7 +1,7 @@
 # This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis and Control of Trades
 # Copyright (C) 2018 Vladimir Zhbanko
 # Preferrably to be used only with the courses Lazy Trading see: https://vladdsm.github.io/myblog_attempt/index.html
-
+# https://www.udemy.com/your-trading-control-reinforcement-learning/?couponCode=LAZYTRADE4-10
 # PURPOSE: Analyse trade results in Terminal 1 and Trigger or Stop Trades in Terminal 3
 # NOTE:    Results are triggered by writing to the file of the MT4 Trading Terminal
 # REINFORCEMENT LEARNING! EXPERIMENTING ONLY! USE AT YOUR OWN RISK!
@@ -33,8 +33,11 @@ library(openssl)
 # -------------------------
 # terminal 1 path *** make sure to customize this path
 path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
-# path for Reinforcement Learning objects *** make sure to create folder 'RL' inside sandbox
+
+# path for Reinforcement Learning objects *** create folder 'RL' inside sandbox if it's not exist
 path_RL <- paste0(path_T1, "RL/")
+if(!dir.exists(path_RL)){dir.create(path_RL)}
+
 # terminal 3 path *** make sure to customize this path
 path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 
@@ -102,7 +105,7 @@ for (i in 1:length(vector_systems)) {
   # Perform Reinforcement Learning
   # -------------------------
   # get the unique id of the last trade. This is to know if to retrain the model
-  recent_name <- trading_systemDF %>% head(1) %>% as.character() %>% as.vector() %>% paste(collapse = "") %>% sha1()
+  recent_name <- trading_systemDF %>% tail(1) %>% as.character() %>% as.vector() %>% paste(collapse = "") %>% sha1()
   recent_name_file <- paste0(path_RL, recent_name)
   
   # Define state and action sets
@@ -127,7 +130,8 @@ for (i in 1:length(vector_systems)) {
   if(!file.exists(recent_name_file)){
   
   # perform RL
-  model <- ReinforcementLearning(trading_systemDFRL, s = "State", a = "Action", r = "Reward", s_new = "NextState",iter = 1, control = control)
+  model <- ReinforcementLearning(trading_systemDFRL, s = "State", a = "Action", r = "Reward", 
+                                 s_new = "NextState",iter = 1, control = control)
   
   # apply policy based on model
   apply_policy(trading_system = trading_system, model = model, last_trade = latest_trade, path_sandbox = path_T3)
@@ -142,7 +146,7 @@ for (i in 1:length(vector_systems)) {
     # model on recent data
     model_new <- ReinforcementLearning(trading_systemDFRL20, s = "State", a = "Action", r = "Reward",
                                        s_new = "NextState", control = control, iter = 1, model = model_old)
-    
+    #summary(model_new)
     # write new model to file
     write_rds(model_new, recent_name_file)
     
@@ -159,6 +163,7 @@ for (i in 1:length(vector_systems)) {
   # policy(model_new)
   # print(model_new)
   # summary(model_new)
+  # plot(model_new)
   
   
   
@@ -181,7 +186,7 @@ for (i in 1:length(vector_systems)) {
 # stopping all systems when macroeconomic event is present
 # this will be covered in the Course #5 of the Lazy Trading Series!
 # -------------------------
-
+if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
 DF_NT <- read_csv(file= file.path(path_T1, "01_MacroeconomicEvent.csv"), col_types = "i")
 if(DF_NT[1,1] == 1) {
   # disable trades
@@ -193,4 +198,4 @@ if(DF_NT[1,1] == 1) {
   writeCommandViaCSV(DF_DisableT1, path_T1)
   writeCommandViaCSV(DF_DisableT3, path_T3)
 }
-
+}
