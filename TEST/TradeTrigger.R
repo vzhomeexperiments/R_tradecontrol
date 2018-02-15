@@ -87,7 +87,6 @@ DFT1_L %>%
 # -------------------------
 DFT3 <- try(import_data(path_T3, "OrdersResultsT3.csv"),silent = TRUE)
 
-if(class(DFT3)[1]=="try-error"){ }
 # -------------------------
 # stopping all systems when macroeconomic event is present
 # this will be covered in the Course #5 of the Lazy Trading Series!
@@ -97,12 +96,16 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
   DF_NT <- read_csv(file= file.path(path_T1, "01_MacroeconomicEvent.csv"), col_types = "i")
   if(DF_NT[1,1] == 1) {
     # disable trades
-    DF_DisableT1 <- DFT1 %>%
-      group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0)
-    DF_DisableT3 <- DFT3 %>%
-      group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0)
-    # write commands to disable systems
-    writeCommandViaCSV(DF_DisableT1, path_T1)
-    writeCommandViaCSV(DF_DisableT3, path_T3)
+    if(!class(DFT1)[1]=='try-error'){
+      DFT1 %>%
+        group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
+        # write commands to disable systems
+        writeCommandViaCSV(path_T1)}
+    if(!class(DFT3)[1]=='try-error'){
+      DFT3 %>%
+        group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
+        writeCommandViaCSV(path_T3)}
+    
+    
   }
 }

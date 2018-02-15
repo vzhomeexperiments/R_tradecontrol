@@ -52,7 +52,7 @@ vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
 
 ### ============== FOR EVERY TRADING SYSTEM ###
 for (i in 1:length(vector_systems)) {
-  # i <- 2
+  # i <- 3
   trading_system <- vector_systems[i]
   # get only data for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
@@ -114,7 +114,7 @@ for (i in 1:length(vector_systems)) {
                                  s_new = "NextState",iter = 1, control = control)
   
   # apply policy based on model
-  apply_policy(trading_system = trading_system, model = model, last_trade = latest_trade, path_sandbox = path_T4)
+  #apply_policy(trading_system = trading_system, model = model, last_trade = latest_trade, path_sandbox = path_T4)
   
   # save model to file
   write_rds(model, recent_name_file)
