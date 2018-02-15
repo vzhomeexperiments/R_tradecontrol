@@ -172,12 +172,12 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
 DF_NT <- read_csv(file= file.path(path_T1, "01_MacroeconomicEvent.csv"), col_types = "i")
 if(DF_NT[1,1] == 1) {
   # disable trades
-  if(!class(DFT1)['try-error']){
+  if(!class(DFT1)[1]=='try-error'){
   DFT1 %>%
     group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
     # write commands to disable systems
     writeCommandViaCSV(path_T1)}
-  if(!class(DFT1)['try-error']){
+  if(!class(DFT4)[1]=='try-error'){
   DFT4 %>%
     group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
     writeCommandViaCSV(path_T4)}

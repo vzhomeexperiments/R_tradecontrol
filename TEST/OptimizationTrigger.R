@@ -46,6 +46,7 @@ DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 
 #### SORTING AND DECIDE IF SYSTEM NEEDS TO BE RE-TRAINED/RE-OPTIMIZED #### -----------------------------
 # 4. Last 20 orders on DEMO && pr.fact < 0.7 SUGGEST TO RE-TRAINE
+if(!class(DFT1)[1]=='try-error'){
 DFT1 %>%  # filtered to contain last 20 orders for each system
   group_by(MagicNumber) %>% 
   arrange(MagicNumber, desc(OrderCloseTime)) %>% 
@@ -56,7 +57,7 @@ DFT1 %>%  # filtered to contain last 20 orders for each system
   select(MagicNumber, PrFact) %>% 
   mutate(ToOptimize = 1) %>% 
   inner_join(y = read_excel(path = paste0(path_PRJCT, "Setup.xlsx")), by = c("MagicNumber" = "Magic")) %>% 
-  write_csv(path = paste0(path_PRJCT, Sys.Date(), "-Re-Train", ".csv"))
+  write_csv(path = paste0(path_PRJCT, Sys.Date(), "-Re-Train", ".csv"))}
 
 
 ##======================================== end of script
