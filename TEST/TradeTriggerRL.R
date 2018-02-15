@@ -50,12 +50,6 @@ DFT1 <- import_data(path_T1, "OrdersResultsT1.csv")
 # Vector with unique Trading Systems
 vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
 
-# -------------------------
-# read data from trades in terminal 4
-# -------------------------
-DFT4 <- try(import_data(path_T4, "OrdersResultsT4.csv"),silent = TRUE)
-
-
 ### ============== FOR EVERY TRADING SYSTEM ###
 for (i in 1:length(vector_systems)) {
   # i <- 2
@@ -81,7 +75,7 @@ for (i in 1:length(vector_systems)) {
   trading_systemDFRL <- trading_systemDF %>% data_4_RL(all_trades = TRUE)
   
   ## -- Exit for Loop if there is too little trades! -- ##
-  if(nrow(trading_systemDFRL) <= 7){ break }
+  if(nrow(trading_systemDFRL) <= 7) { next }
   
   ### ** RECENT TRADES BY THIS SYSTEM **
   # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
@@ -162,8 +156,10 @@ for (i in 1:length(vector_systems)) {
 
 
 
-
-
+# -------------------------
+# read data from trades in terminal 4
+# -------------------------
+DFT4 <- try(import_data(path_T4, "OrdersResultsT4.csv"),silent = TRUE)
 
 
 
@@ -176,12 +172,16 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
 DF_NT <- read_csv(file= file.path(path_T1, "01_MacroeconomicEvent.csv"), col_types = "i")
 if(DF_NT[1,1] == 1) {
   # disable trades
-  DF_DisableT1 <- DFT1 %>%
-    group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0)
-  DF_DisableT4 <- DFT4 %>%
-    group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0)
-  # write commands to disable systems
-  writeCommandViaCSV(DF_DisableT1, path_T1)
-  writeCommandViaCSV(DF_DisableT4, path_T4)
+  if(!class(DFT1)['try-error']){
+  DFT1 %>%
+    group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
+    # write commands to disable systems
+    writeCommandViaCSV(path_T1)}
+  if(!class(DFT1)['try-error']){
+  DFT4 %>%
+    group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
+    writeCommandViaCSV(path_T4)}
+  
+  
 }
 }
