@@ -52,7 +52,7 @@ vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
 
 ### ============== FOR EVERY TRADING SYSTEM ###
 for (i in 1:length(vector_systems)) {
-  # i <- 3
+  # i <- 14
   trading_system <- vector_systems[i]
   # get only data for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
