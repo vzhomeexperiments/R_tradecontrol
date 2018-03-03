@@ -23,6 +23,8 @@ import_data <- function(path_terminal, trade_log_file){
     DFT1$OrderStartTime <- ymd_hms(DFT1$OrderStartTime)
     DFT1$OrderCloseTime <- ymd_hms(DFT1$OrderCloseTime)
     DFT1$OrderType      <- as.factor(DFT1$OrderType)
+    # removes duplicates
+    DFT1 <- unique(DFT1)
     
     return(DFT1)
   } else {
