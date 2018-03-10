@@ -27,6 +27,7 @@ library(openssl)
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/apply_policy.R")
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/data_4_RL.R")
+ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/data_4_RL_Slave.R")
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
 
 # -------------------------
@@ -46,6 +47,10 @@ path_T4 <- "C:/Program Files (x86)/FxPro - Terminal4/MQL4/Files/"
 # read data from trades in terminal 1
 # -------------------------
 DFT1 <- import_data(path_T1, "OrdersResultsT1.csv")
+# -------------------------
+# read data from trades in terminal 4
+# -------------------------
+DFT4 <- import_data(path_T4, "OrdersResultsT4.csv")
 
 # Vector with unique Trading Systems
 vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
@@ -56,6 +61,10 @@ for (i in 1:length(vector_systems)) {
   trading_system <- vector_systems[i]
   # get only data for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
+  
+  # get data also from terminal 4
+  trading_sysT4 <- trading_system + 300
+  trading_systRes4 <- DFT4 %>% filter(MagicNumber == trading_sysT4)
   
   # get the latest trade of that system (will be used to match with policy of RL)
   latest_trade <- DFT1 %>% 
@@ -69,18 +78,21 @@ for (i in 1:length(vector_systems)) {
   # -------------------------
   # Perform Data Manipulation for RL
   # -------------------------
-  ### ** ALL TRADES BY THIS SYSTEM **
+  ### ** ALL TRADES BY THIS SYSTEM in T1 **
   # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
-  
   trading_systemDFRL <- trading_systemDF %>% data_4_RL(all_trades = TRUE)
   
   ## -- Exit for Loop if there is too little trades! -- ##
   if(nrow(trading_systemDFRL) <= 7) { next }
   
-  ### ** RECENT TRADES BY THIS SYSTEM **
+  
+  ### ** RECENT TRADES BY THIS SYSTEM in T1 **
   # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
-  trading_systemDFRL20 <- trading_systemDF %>% data_4_RL(all_trades = FALSE, num_trades = 20)
-    
+  trading_systemDFRL5 <- trading_systemDF %>% data_4_RL(all_trades = FALSE, num_trades = 6)
+  
+  ### ** TRADES BY THIS SYSTEM IN T4 [added] 
+  trading_systemDFRL_T4 <- trading_systRes4 %>% data_4_RL_slave(all_trades = FALSE, num_trades = 6) #use last trades
+  
   # -------------------------
   # Perform Reinforcement Learning
   # -------------------------
@@ -124,9 +136,18 @@ for (i in 1:length(vector_systems)) {
     
     # update model
     model_old <- read_rds(recent_name_file)
+    
+    ## ---- in case trades are generated in T4 already we use that to re-train
     # model on recent data
-    model_new <- ReinforcementLearning(trading_systemDFRL20, s = "State", a = "Action", r = "Reward",
-                                       s_new = "NextState", control = control, iter = 3, model = model_old)
+    if(nrow(trading_systemDFRL_T4) >= 2) { 
+    model_new <- ReinforcementLearning(trading_systemDFRL_T4, s = "State", a = "Action", r = "Reward",
+                                       s_new = "NextState", control = control, iter = 1, model = model_old)
+    } else {
+    ## ---- in case T4 not yet has any trades we will use last trades in T1
+    model_new <- ReinforcementLearning(trading_systemDFRL5, s = "State", a = "Action", r = "Reward",
+                                       s_new = "NextState", control = control, iter = 1, model = model_old)
+      
+    }
     #summary(model_new)
     # write new model to file
     write_rds(model_new, recent_name_file)
