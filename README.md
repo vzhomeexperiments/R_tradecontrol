@@ -1,9 +1,9 @@
 # tradecontrol
-project to control trades. calculating profit factor and statistics
+project to control trades. calculating profit factor and statistics. experimenting with Reinforcement Learning
 
 # learn how to apply that tool
 
-https://www.udemy.com/draft/1482406/?couponCode=LAZYTRADE4-20
+https://www.udemy.com/your-trading-control-reinforcement-learning/?couponCode=LAZYTRADE4-10
 
 ## Main Content
 
