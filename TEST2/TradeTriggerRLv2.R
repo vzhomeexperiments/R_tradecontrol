@@ -46,11 +46,11 @@ path_T4 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
-DFT1 <- import_data(path_T1, "OrdersResultsT1.csv")
+DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 # -------------------------
 # read data from trades in terminal 3
 # -------------------------
-DFT4 <- import_data(path_T4, "OrdersResultsT3.csv")
+DFT4 <- try(import_data(path_T4, "OrdersResultsT3.csv"), silent = TRUE)
 
 # Vector with unique Trading Systems
 vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
