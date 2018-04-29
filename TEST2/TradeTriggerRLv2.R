@@ -57,7 +57,7 @@ vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
 
 ### ============== FOR EVERY TRADING SYSTEM ###
 for (i in 1:length(vector_systems)) {
-  # i <- 1
+  # i <- 3
   trading_system <- vector_systems[i]
   # get only data for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
@@ -82,14 +82,9 @@ for (i in 1:length(vector_systems)) {
   if(nrow(trading_systemDFRL) <= 7) { next }
   
   ### ** RECENT TRADES BY THIS SYSTEM in T1 **
-  # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
-  trading_systemDFRL5 <- trading_systemDF %>% data_4_RL(all_trades = FALSE, num_trades = 6)
-  
-  ### ** TRADES BY THIS SYSTEM IN T4 [added] 
-  # get data also from terminal 3
-  trading_sysT4 <- trading_system + 200
-  trading_systRes4 <- DFT4 %>% filter(MagicNumber == trading_sysT4)
-  trading_systemDFRL_T4 <- trading_systRes4 %>% data_4_RL_slave(all_trades = FALSE, num_trades = 6) #use last trades
+  # simple consideration of latest trades and actions as they are!
+  # these would be the same trades for T3 as well
+  trading_systemDFRL5 <- trading_systemDF %>% data_4_RL_slave(all_trades = FALSE, num_trades = 6) #use last trades
   
   # -------------------------
   # Perform Reinforcement Learning
@@ -118,43 +113,34 @@ for (i in 1:length(vector_systems)) {
   # -----
   # -----------------------------------------------------------------------------
   #==============================================================================
-  # running RL first time when model not exist yet
+  # running RL for all data of Terminal 1 when current model is not exist
   if(!file.exists(recent_name_file)){
   
-  # perform RL
-  model <- ReinforcementLearning(trading_systemDFRL, s = "State", a = "Action", r = "Reward", 
-                                 s_new = "NextState",iter = 1, control = control)
-  
-  # apply policy based on model
-  #apply_policy(trading_system = trading_system, model = model, last_trade = latest_trade, path_sandbox = path_T4)
-  
+    # perform RL on the all data!
+    model <- ReinforcementLearning(trading_systemDFRL, s = "State", a = "Action", r = "Reward", 
+                                   s_new = "NextState",iter = 1, control = control)
+    # perform RL model update on recent 6 trades of Terminal 1
+    if(nrow(trading_systemDFRL5) >= 5){
+      model_new <- ReinforcementLearning(trading_systemDFRL5, s = "State", a = "Action", r = "Reward",
+                                         s_new = "NextState", control = control, iter = 1, model = model)
+    }
+    
+    # apply the policy
+    apply_policy(trading_system = trading_system, model = model_new, last_trade = latest_trade, path_sandbox = path_T4)
+    
   # save model to file
-  write_rds(model, recent_name_file)
+  write_rds(model_new, recent_name_file)
+  # running RL model to update the relevant model
   } else { 
     # perform model update
     
     # update model
     model_old <- read_rds(recent_name_file)
     
-    ## ---- in case trades are generated in T4 already we use that to re-train
-    # model on recent data
-    if(nrow(trading_systemDFRL_T4) >= 2) { 
-    model_new <- ReinforcementLearning(trading_systemDFRL_T4, s = "State", a = "Action", r = "Reward",
-                                       s_new = "NextState", control = control, iter = 1, model = model_old)
-    } else {
-    ## ---- in case T4 not yet has any trades we will use last trades in T1
-    model_new <- ReinforcementLearning(trading_systemDFRL5, s = "State", a = "Action", r = "Reward",
-                                       s_new = "NextState", control = control, iter = 1, model = model_old)
-      
-    }
-    #summary(model_new)
-    # write new model to file
-    write_rds(model_new, recent_name_file)
-    
     # -------------------------
     # Apply policy
     # -------------------------
-    apply_policy(trading_system = trading_system, model = model_new, last_trade = latest_trade, path_sandbox = path_T4)
+    apply_policy(trading_system = trading_system, model = model_old, last_trade = latest_trade, path_sandbox = path_T4)
     
     
     }
@@ -165,12 +151,6 @@ for (i in 1:length(vector_systems)) {
   # print(model_new)
   # summary(model_new)
   # plot(model_new)
-  
-  
-  
-  
-  
-
 
 }
 ### ============== END of FOR EVERY TRADING SYSTEM ###
