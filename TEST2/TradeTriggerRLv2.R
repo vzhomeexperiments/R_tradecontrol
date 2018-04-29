@@ -120,29 +120,18 @@ for (i in 1:length(vector_systems)) {
     model <- ReinforcementLearning(trading_systemDFRL, s = "State", a = "Action", r = "Reward", 
                                    s_new = "NextState",iter = 1, control = control)
     # perform RL model update on recent 6 trades of Terminal 1
-    if(nrow(trading_systemDFRL5) >= 5){
-      model_new <- ReinforcementLearning(trading_systemDFRL5, s = "State", a = "Action", r = "Reward",
+    model_new <- ReinforcementLearning(trading_systemDFRL5, s = "State", a = "Action", r = "Reward",
                                          s_new = "NextState", control = control, iter = 1, model = model)
-    }
-    
     # apply the policy
     apply_policy(trading_system = trading_system, model = model_new, last_trade = latest_trade, path_sandbox = path_T4)
-    
-  # save model to file
-  write_rds(model_new, recent_name_file)
+    # save model to file
+    write_rds(model_new, recent_name_file)
   # running RL model to update the relevant model
   } else { 
-    # perform model update
-    
-    # update model
+    # no new trades was generated we can use the old model
     model_old <- read_rds(recent_name_file)
-    
-    # -------------------------
-    # Apply policy
-    # -------------------------
+    # apply the policy
     apply_policy(trading_system = trading_system, model = model_old, last_trade = latest_trade, path_sandbox = path_T4)
-    
-    
     }
   
   # # debugging policies
