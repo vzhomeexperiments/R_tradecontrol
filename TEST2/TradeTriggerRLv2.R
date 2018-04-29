@@ -62,10 +62,6 @@ for (i in 1:length(vector_systems)) {
   # get only data for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
   
-  # get data also from terminal 3
-  trading_sysT4 <- trading_system + 200
-  trading_systRes4 <- DFT4 %>% filter(MagicNumber == trading_sysT4)
-  
   # get the latest trade of that system (will be used to match with policy of RL)
   latest_trade <- DFT1 %>% 
     filter(MagicNumber == trading_system) %>% 
@@ -85,22 +81,25 @@ for (i in 1:length(vector_systems)) {
   ## -- Exit for Loop if there is too little trades! -- ##
   if(nrow(trading_systemDFRL) <= 7) { next }
   
-  
   ### ** RECENT TRADES BY THIS SYSTEM in T1 **
   # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
   trading_systemDFRL5 <- trading_systemDF %>% data_4_RL(all_trades = FALSE, num_trades = 6)
   
   ### ** TRADES BY THIS SYSTEM IN T4 [added] 
+  # get data also from terminal 3
+  trading_sysT4 <- trading_system + 200
+  trading_systRes4 <- DFT4 %>% filter(MagicNumber == trading_sysT4)
   trading_systemDFRL_T4 <- trading_systRes4 %>% data_4_RL_slave(all_trades = FALSE, num_trades = 6) #use last trades
   
   # -------------------------
   # Perform Reinforcement Learning
   # -------------------------
-  # get the unique id of the last trade. This is to know if to retrain the model
+  # get the unique id of the last trade. This is to know if to retrain the model. Note we are using hashing 
+  # algorithm to simplify generation of unique string
   recent_name <- trading_systemDF %>% tail(1) %>% as.character() %>% as.vector() %>% paste(collapse = "") %>% sha1()
   recent_name_file <- paste0(path_RL, recent_name)
   
-  # Define state and action sets
+  # Define state and action sets for Reinforcement Learning
   states <- c("tradewin", "tradeloss")
   actions <- c("ON", "OFF")
   
