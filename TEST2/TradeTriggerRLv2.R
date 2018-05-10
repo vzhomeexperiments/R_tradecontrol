@@ -170,4 +170,14 @@ if(DF_NT[1,1] == 1) {
   
   
 }
+# enable systems of T1 in case they were disabled previously
+if(DF_NT[1,1] == 0) {
+  # disable trades
+  if(!class(DFT1)[1]=='try-error'){
+    DFT1 %>%
+      group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 
+      # write commands to disable systems
+      writeCommandViaCSV(path_T1)}
+}
+
 }
