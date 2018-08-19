@@ -55,11 +55,17 @@ DFT4 <- try(import_data(path_T4, "OrdersResultsT3.csv"), silent = TRUE)
 # Vector with unique Trading Systems
 vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
 
+# For debugging: summarise number of trades to see desired number of trades was achieved
+DFT1_sum <- DFT1 %>% 
+  group_by(MagicNumber) %>% 
+  summarise(Num_Trades = n()) %>% 
+  arrange(desc(Num_Trades))
+
 ### ============== FOR EVERY TRADING SYSTEM ###
 for (i in 1:length(vector_systems)) {
   
   tryCatch({
-    # i <- 6
+    # i <- 19
     
     
   
@@ -84,7 +90,7 @@ for (i in 1:length(vector_systems)) {
   trading_systemDFRL <- trading_systemDF %>% data_4_RL(all_trades = TRUE)
   
   ## -- Exit for Loop if there is too little trades! -- ##
-  if(nrow(trading_systemDFRL) <= 7) { next }
+  if(nrow(trading_systemDFRL) < 15) { next }
   
   ### ** RECENT TRADES BY THIS SYSTEM in T1 **
   # simple consideration of latest trades and actions as they are!
@@ -114,7 +120,8 @@ for (i in 1:length(vector_systems)) {
   #control <- list(alpha = 0.5, gamma = 0.5, epsilon = 0.5)
   #control <- list(alpha = 0.9, gamma = 0.9, epsilon = 0.9)
   #control <- list(alpha = 0.8, gamma = 0.3, epsilon = 0.5)
-  control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1)
+  #control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) #TEST2
+  control <- list(alpha = 0.9, gamma = 0.6, epsilon = 0.1)  #TEST3
   # -----
   # -----------------------------------------------------------------------------
   #==============================================================================
@@ -180,7 +187,7 @@ if(DF_NT[1,1] == 1) {
 }
 # enable systems of T1 in case they were disabled previously
 if(DF_NT[1,1] == 0) {
-  # disable trades
+  # enable trades
   if(!class(DFT1)[1]=='try-error'){
     DFT1 %>%
       group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 

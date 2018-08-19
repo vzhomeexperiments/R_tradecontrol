@@ -45,10 +45,10 @@ if(all_trades == FALSE){
     group_by(MagicNumber) %>% 
     # arrange as ascending
     arrange(OrderCloseTime) %>% 
-    # create column with cumulative profit
-    mutate(csum=cumsum(Profit)) %>% 
     # we will always consider more recent history
     tail(num_trades) %>% 
+    # create column with cumulative profit
+    mutate(csum=cumsum(Profit)) %>% 
     # create column State
     mutate(NextState = ifelse(Profit>0, "tradewin",
                               ifelse(Profit<0, "tradeloss", NA)),
