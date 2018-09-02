@@ -1,14 +1,14 @@
 # tradecontrol
 project to control trades. calculating profit factor and statistics. experimenting with Reinforcement Learning
 
-# learn how to apply that tool
+## About
 
-https://www.udemy.com/your-trading-control-reinforcement-learning/?couponCode=LAZYTRADE4-10
+This repository was created to help Algorithmic Trader to supervise Trading Robots automatically. Goal is to allow automatic selection of the most profitable systems only. Part of the so called *Lazy Trading Courses* with the main objective to learn Computer and Data Science by building the Algorithmic Trading Systems.
 
-## Main Content
+## Learn how to apply that tool in practice
 
-1). writeCommandViaCSV.R - function to write command to the DSS
-2). profit_factor.R - function to calculate profit factor of a vector
-3). TradeTrigger.R - Script to perform Statistcial Analysis and Control
-4). TradeTriggerRL.R - Script to perfrom Control via Reinforcement Learning
-5). OptimizationTrigger.R - Script to write summary of trades and if Optimization is required
+Join *Udemy Course* using this [coupon](https://www.udemy.com/your-trading-control-reinforcement-learning/?couponCode=LAZYTRADE4-10)
+
+## Detail
+
+Read my [blog post](https://vladdsm.github.io/myblog_attempt/topics/lazy%20trading/topics-LazyTrade4-StatisticalControl.html) about the motivation creating this project
