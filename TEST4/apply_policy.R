@@ -27,6 +27,13 @@
 #' 
 #' 
 apply_policy <- function(trading_system, model, last_trade, path_sandbox){
+  # debugging
+  # trading_system
+  # model <- read_rds("test_data/apply_policy_model.rds")
+  # last_trade <- "tradeloss"
+  # last_trade <- "tradewin"
+  # check the sign of the ON function for policy state
+  hash_val <- model$Q %>% as.data.frame() %>% select(ON) %>% filter(row.names(.) %in% last_trade)
 # recover decision based on updated policy
   decision <- policy(model)[last_trade]
 # derive which terminal should be enabled (using path to sandbox) and using variable 'addition'
@@ -34,9 +41,12 @@ apply_policy <- function(trading_system, model, last_trade, path_sandbox){
   if(is_T3 == TRUE) { addition <- 200 }
   is_T4 <- str_detect(path_sandbox, "Terminal4")
   if(is_T4 == TRUE) { addition <- 300 }
-# build dataframe for sending to the file
-if(decision == "ON"){
+# Check Q value, only consider good values when hash_value is positive!!!
+# Motivation: Q value for Action 'ON' can be -2.5 and for Action 'OFF' can be -5...
+  # in this case Policy will select 'ON' while it can still be a lousy system
   
+if(decision == "ON" && hash_val > 0){
+  # build dataframe for sending to the file
   decision_DF <- data.frame(MagicNumber = trading_system + addition,
                             IsEnabled = 1)
   # -------------------------
