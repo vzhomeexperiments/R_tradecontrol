@@ -72,7 +72,7 @@ for (i in 1:length(vector_systems)) {
   # tryCatch() function will not abort the entire for loop in case of the error in one iteration
   tryCatch({
     # execute this code below for debugging:
-    # i <- 5
+    # i <- 25
     
   # extract current magic number id
   trading_system <- vector_systems[i]
@@ -91,9 +91,10 @@ for (i in 1:length(vector_systems)) {
     # get the latest market type state (we will have to read it from the sandbox!)
     latest_mt <- read_csv(file.path(path_T1, paste0("AI_MarketType_", symbol,"15.csv")),col_names = F) %$% X1[2]
     # filter to have only results from the current market type
-    trading_systemDF <- trading_systemDF %>% 
-      filter(MarketType == latest_mt)
-  }
+    # Comment the code below to have all market type results
+    # trading_systemDF <- trading_systemDF %>% 
+    #   filter(MarketType == latest_mt)
+    }
   
   # get the latest trade of that system (will be used to match with policy of RL)
   latest_trade <- trading_systemDF %>% 
@@ -105,17 +106,17 @@ for (i in 1:length(vector_systems)) {
   
   
   ## -- Exit for Loop if there is too little trades! -- ##
-  if(nrow(trading_systemDF) < 8) { next }
+  if(nrow(trading_systemDF) < 28) { next }
   # -------------------------
   # Perform Data Manipulation for RL
   # -------------------------
   ### ** FIRST TRADES BY THIS SYSTEM in T1 **
   # retrieve the first trades of the trading system (for initial model building)
-  DFRL_start <- trading_systemDF %>% data_4_RL(all_trades = FALSE, num_trades = 6) #use first trades
+  DFRL_start <- trading_systemDF %>% data_4_RL(all_trades = FALSE, num_trades = 20) #use first trades
 
   ### ** RECENT TRADES BY THIS SYSTEM in T1 **
   # retrieve the last trades of the trading system (for model update)
-  DFRL_update <- trading_systemDF %>% data_4_RL(all_trades = TRUE, num_trades = 6) #use last trades
+  DFRL_update <- trading_systemDF %>% data_4_RL(all_trades = TRUE, num_trades = 10) #use last trades
   
   # -------------------------
   # Perform Reinforcement Learning
@@ -123,7 +124,7 @@ for (i in 1:length(vector_systems)) {
   
   #==============================================================================
   # Define state and action sets for Reinforcement Learning
-  states <- c("tradewin", "tradeloss")
+  states <- c("BUN", "BUV", "BEN", "BEV", "RAN", "RAV")
   actions <- c("ON", "OFF") # 'ON' and 'OFF' are referring to decision to trade with Slave system
   
   # Define reinforcement learning parameters (see explanation below or in vignette)
@@ -149,6 +150,7 @@ for (i in 1:length(vector_systems)) {
     model <- ReinforcementLearning(DFRL_update, s = "State", a = "Action", r = "Reward",
                                          s_new = "NextState", control = control, iter = 1, model = model)
     #plot(model)
+    #print(model)
     # apply the policy
     apply_policy(trading_system = trading_system, model = model, last_trade = latest_trade, path_sandbox = path_T4)
     # save model to file

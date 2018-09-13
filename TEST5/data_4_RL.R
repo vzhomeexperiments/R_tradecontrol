@@ -24,6 +24,7 @@
 data_4_RL <- function(x, all_trades = TRUE, num_trades = 20){
   # uncomment to debug code inside the function
   # x <- read_rds("test_data/data_4_RL.rds")
+  # x <- trading_systemDF
   # all_trades = TRUE
   # num_trades = 8
   # get total number of trades done by this system
@@ -45,8 +46,7 @@ data_4_RL <- function(x, all_trades = TRUE, num_trades = 20){
       mutate(profit_rand = rep(0:1, length.out = num_trades)) %>% #non random
       #mutate(profit_rand = sample(0:1, n(), replace = TRUE)) %>% # random
       # create column State
-      mutate(NextState = ifelse(Profit>0, "tradewin",
-                                ifelse(Profit<0, "tradeloss", NA)),
+      mutate(NextState = as.character(MarketType),
              # for initial Action randomly generated values
              Action = ifelse(profit_rand == 1, "ON",
                              ifelse(profit_rand == 0, "OFF", NA)),
@@ -78,8 +78,7 @@ trading_systemDFRL <- x %>%
   #mutate(profit_rand = rep(0:1, length.out = num_trades)) %>% #non random
   #mutate(profit_rand = sample(0:1, n(), replace = TRUE)) %>% # random
   # create column State
-  mutate(NextState = ifelse(Profit>0, "tradewin",
-                            ifelse(Profit<0, "tradeloss", NA)),
+  mutate(NextState = as.character(MarketType),
          # very simple logic: whenever cumulative sum is positive - we trade...
          Action = ifelse(Profit > 0, "ON",
                          ifelse(Profit <= 0, "OFF", NA)),
