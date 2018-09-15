@@ -14,7 +14,8 @@
 #          : model is retrained using data from the following trades...
 #          : reinforcement learning model objects are not saved
 # NOTE:    TEST5
-#          : Reinforcement Learning Models are created for each specific Market Type
+#          : Reinforcement Learning Models are created for each specific system considering 6 Market Types
+#          : RL would learn to select the best Market Types to switch ON/OFF Trading Systems
 
 
 # packages used *** make sure to install these packages
@@ -40,6 +41,7 @@ library(magrittr)
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/data_4_RL.R")
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/import_data_mt.R")
+ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/generate_RL_policy.R")
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
@@ -72,7 +74,7 @@ for (i in 1:length(vector_systems)) {
   # tryCatch() function will not abort the entire for loop in case of the error in one iteration
   tryCatch({
     # execute this code below for debugging:
-    # i <- 25
+    # i <- 14
     
   # extract current magic number id
   trading_system <- vector_systems[i]
@@ -82,75 +84,35 @@ for (i in 1:length(vector_systems)) {
   # write_rds(trading_systemDF,path = "test_data/data_4_RL.rds")
   # try to extract market type information for that system
   DFT1_MT <- try(import_data_mt(path_T1, trading_system), silent = TRUE)
-  # join the data in case Market Type information is available
-  if(class(DFT1_MT)[1] != "try-error") {
     # joining the data with market type info
     trading_systemDF <- inner_join(trading_systemDF, DFT1_MT, by = "TicketNumber")
-    # get symbol of this system
-    symbol <- trading_systemDF %>% head(1) %$% Symbol
-    # get the latest market type state (we will have to read it from the sandbox!)
-    latest_mt <- read_csv(file.path(path_T1, paste0("AI_MarketType_", symbol,"15.csv")),col_names = F) %$% X1[2]
-    # filter to have only results from the current market type
-    # Comment the code below to have all market type results
-    # trading_systemDF <- trading_systemDF %>% 
-    #   filter(MarketType == latest_mt)
-    }
-  
-  # get the latest trade of that system (will be used to match with policy of RL)
-  latest_trade <- trading_systemDF %>% 
-    arrange(desc(OrderCloseTime)) %>% 
-    mutate(NextState = ifelse(Profit>0, "tradewin",
-                              ifelse(Profit<0, "tradeloss", NA)),
-           Reward =  Profit,
-           State = NextState) %>% head(1) %$% NextState
-  
-  
-  ## -- Exit for Loop if there is too little trades! -- ##
-  if(nrow(trading_systemDF) < 28) { next }
-  # -------------------------
-  # Perform Data Manipulation for RL
-  # -------------------------
-  ### ** FIRST TRADES BY THIS SYSTEM in T1 **
-  # retrieve the first trades of the trading system (for initial model building)
-  DFRL_start <- trading_systemDF %>% data_4_RL(all_trades = FALSE, num_trades = 20) #use first trades
-
-  ### ** RECENT TRADES BY THIS SYSTEM in T1 **
-  # retrieve the last trades of the trading system (for model update)
-  DFRL_update <- trading_systemDF %>% data_4_RL(all_trades = TRUE, num_trades = 10) #use last trades
-  
-  # -------------------------
-  # Perform Reinforcement Learning
-  # -------------------------
-  
-  #==============================================================================
-  # Define state and action sets for Reinforcement Learning
-  states <- c("BUN", "BUV", "BEN", "BEV", "RAN", "RAV")
-  actions <- c("ON", "OFF") # 'ON' and 'OFF' are referring to decision to trade with Slave system
-  
-  # Define reinforcement learning parameters (see explanation below or in vignette)
-  # -----
-  # alpha - learning rate      0.1 <- slow       | fast        -> 0.9
-  # gamma - reward rate        0.1 <- short term | long term   -> 0.9
-  # epsilon - sampling rate    0.1 <- high sample| low sample  -> 0.9
-  # iter 
-  # ----- 
-  # to uncommend desired learning parameters:
-  #control <- list(alpha = 0.5, gamma = 0.5, epsilon = 0.5)
-  #control <- list(alpha = 0.9, gamma = 0.9, epsilon = 0.9)
-  #control <- list(alpha = 0.8, gamma = 0.3, epsilon = 0.5)
-  control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) #TEST4
-  # -----
-  #==============================================================================
-  # remove model object if exist
-  if(exists("model")) {rm(model)}
-  # Perform initial RL of the first trades of this system
-    model <- ReinforcementLearning(DFRL_start, s = "State", a = "Action", r = "Reward", 
-                                   s_new = "NextState",iter = 1, control = control)
-  # perform RL model update on recent trades of Terminal 1
-    model <- ReinforcementLearning(DFRL_update, s = "State", a = "Action", r = "Reward",
-                                         s_new = "NextState", control = control, iter = 1, model = model)
-    #plot(model)
-    #print(model)
+    
+    
+    #==============================================================================
+    # Define state and action sets for Reinforcement Learning
+    states <- c("BUN", "BUV", "BEN", "BEV", "RAN", "RAV")
+    actions <- c("ON", "OFF") # 'ON' and 'OFF' are referring to decision to trade with Slave system
+    
+    # Define reinforcement learning parameters (see explanation below or in vignette)
+    # -----
+    # alpha - learning rate      0.1 <- slow       | fast        -> 0.9
+    # gamma - reward rate        0.1 <- short term | long term   -> 0.9
+    # epsilon - sampling rate    0.1 <- high sample| low sample  -> 0.9
+    # iter 
+    # ----- 
+    # to uncommend desired learning parameters:
+    #control <- list(alpha = 0.5, gamma = 0.5, epsilon = 0.5)
+    #control <- list(alpha = 0.9, gamma = 0.9, epsilon = 0.9)
+    #control <- list(alpha = 0.8, gamma = 0.3, epsilon = 0.5)
+    control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) #TEST4
+    # -----
+    #==============================================================================
+    
+    
+        # perform reinforcement learning and return policy
+    policy_tr_systDF <- generate_RL_policy(trading_systemDF, states = states,actions = actions,
+                                           control = control)
+    
     # apply the policy
     apply_policy(trading_system = trading_system, model = model, last_trade = latest_trade, path_sandbox = path_T4)
     # save model to file

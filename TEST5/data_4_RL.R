@@ -14,19 +14,35 @@
 #' Function to convert trading data into data siutable for Reinforcement Learning
 #'
 #' @param x - Dataframe containing trading data see data
-#' @param all_trades. Logical when TRUE uses all trades by default
 #' @param num_trades Possible to specify how big history of the latest trades to take (sorted by OrderCloseTime)
+#' @param all_trades 
+#' @param states 
+#' @param actions 
+#' @param dummy_tupple adds a dummy tupple collection containing all possible states with zero reward
+#'                     this is to make sure all states are present in the beginning and model update will avoid errors
 #'
 #' @return Function returns data frame in the Reinforcement Learning format
 #' @export
 #'
 #' @examples
-data_4_RL <- function(x, all_trades = TRUE, num_trades = 20){
+data_4_RL <- function(x, all_trades = TRUE, num_trades = 20, states, actions, dummy_tupple = T){
+  require(tidyverse)
   # uncomment to debug code inside the function
   # x <- read_rds("test_data/data_4_RL.rds")
   # x <- trading_systemDF
   # all_trades = TRUE
   # num_trades = 8
+  # Define state and action sets for Reinforcement Learning
+  # states <- c("BUN", "BUV", "BEN", "BEV", "RAN", "RAV")
+  # actions <- c("ON", "OFF") # 'ON' and 'OFF' are referring to decision to trade with Slave system
+  # add dummy tupples with states and actions with minimal reward
+  if(dummy_tupple){
+    d_tupple <- data.frame(State = states,
+                           Action = rep(actions,length(states)),
+                           Reward = rep(c(-0.001,0.001),length(states)),
+                           NextState = states)
+  } 
+  # this is to allow system to 
   # get total number of trades done by this system
   total_trades = nrow(x)
   # -------------
@@ -56,8 +72,10 @@ data_4_RL <- function(x, all_trades = TRUE, num_trades = 20){
       na.omit() %>% 
       # select only relevant columns
       select(State, Action, Reward, NextState) %>% 
+      # bind dummy tupple
+      bind_rows(d_tupple) %>% 
       # ReinforcementLearning function seems to only work with 'dataframe'
-      as.data.frame.data.frame() 
+      as.data.frame.data.frame()
     
     return(trading_systemDFRL)
   }  
