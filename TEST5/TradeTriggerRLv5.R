@@ -74,19 +74,18 @@ for (i in 1:length(vector_systems)) {
   # tryCatch() function will not abort the entire for loop in case of the error in one iteration
   tryCatch({
     # execute this code below for debugging:
-    # i <- 14
+    # i <- 25
     
   # extract current magic number id
   trading_system <- vector_systems[i]
   # get trading summary data only for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
-  # write this data for further debugging or tests
-  # write_rds(trading_systemDF,path = "test_data/data_4_RL.rds")
   # try to extract market type information for that system
   DFT1_MT <- try(import_data_mt(path_T1, trading_system), silent = TRUE)
     # joining the data with market type info
     trading_systemDF <- inner_join(trading_systemDF, DFT1_MT, by = "TicketNumber")
-    
+    # write this data for further debugging or tests
+    # write_rds(trading_systemDF,path = "test_data/data_trades_markettype.rds")
     
     #==============================================================================
     # Define state and action sets for Reinforcement Learning
@@ -109,12 +108,12 @@ for (i in 1:length(vector_systems)) {
     #==============================================================================
     
     
-        # perform reinforcement learning and return policy
+    # perform reinforcement learning and return policy
     policy_tr_systDF <- generate_RL_policy(trading_systemDF, states = states,actions = actions,
                                            control = control)
-    
-    # apply the policy
-    apply_policy(trading_system = trading_system, model = model, last_trade = latest_trade, path_sandbox = path_T4)
+    #TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:
+    # record policy to the sandbox of Terminal 3, this should be analysed by EA
+    #TDL: record_policy(trading_system = trading_system, path_sandbox = path_T4)
     # save model to file
     
   # # debugging policies
