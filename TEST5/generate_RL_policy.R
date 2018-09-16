@@ -60,9 +60,15 @@ generate_RL_policy <- function(x, states, actions, control){
     #model$Q
     #print(i)
   }
-  # extract policy from the obtained dataset
-  df_policy <- policy(model) %>% as.data.frame()
-  #plot(model)
-  return(df_policy)
+  # extract custom policy from the obtained dataset
+  df_Q <- model$Q %>% as.data.frame() %>% 
+    # create column with market periods
+    mutate(MarketType = row.names(.)) %>% 
+    # interpret policy as defined logic, value at ON must be >= 0!
+    mutate(Policy = ifelse(ON <= 0, "OFF", ifelse(ON > OFF, "ON", ifelse(OFF > ON, "OFF", NA)))) %>% 
+    select(MarketType, Policy)
+  
+   #plot(model)
+   return(df_Q)
 
 }

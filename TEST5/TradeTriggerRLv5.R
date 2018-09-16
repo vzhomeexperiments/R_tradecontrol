@@ -42,6 +42,7 @@ library(magrittr)
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/import_data_mt.R")
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/generate_RL_policy.R")
+ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/record_policy.R")
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
@@ -74,7 +75,7 @@ for (i in 1:length(vector_systems)) {
   # tryCatch() function will not abort the entire for loop in case of the error in one iteration
   tryCatch({
     # execute this code below for debugging:
-    # i <- 25
+    # i <- 2
     
   # extract current magic number id
   trading_system <- vector_systems[i]
@@ -82,6 +83,8 @@ for (i in 1:length(vector_systems)) {
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
   # try to extract market type information for that system
   DFT1_MT <- try(import_data_mt(path_T1, trading_system), silent = TRUE)
+  # go to the next i if there is no data
+  if(class(DFT1_MT)=="try-error") { next }
     # joining the data with market type info
     trading_systemDF <- inner_join(trading_systemDF, DFT1_MT, by = "TicketNumber")
     # write this data for further debugging or tests
@@ -111,17 +114,10 @@ for (i in 1:length(vector_systems)) {
     # perform reinforcement learning and return policy
     policy_tr_systDF <- generate_RL_policy(trading_systemDF, states = states,actions = actions,
                                            control = control)
-    #TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:#TDL:
-    # record policy to the sandbox of Terminal 3, this should be analysed by EA
-    #TDL: record_policy(trading_system = trading_system, path_sandbox = path_T4)
-    # save model to file
     
-  # # debugging policies
-  # policy(model)
-  # policy(model_new)
-  # print(model_new)
-  # summary(model_new)
-  # plot(model_new)
+    # record policy to the sandbox of Terminal 3, this should be analysed by EA
+    record_policy(x = policy_tr_systDF, trading_system = trading_system, path_sandbox = path_T4)
+    
 
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
