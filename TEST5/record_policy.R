@@ -28,6 +28,7 @@ record_policy <- function(x, trading_system, path_sandbox){
   # -------------------------
   # write the file for MQL4 usage
   write.csv(x, file = paste0(path_sandbox, "SystemControlMT", as.character(trading_system + addition), ".csv"),
+            quote = FALSE,
             row.names = FALSE)
 
 }
