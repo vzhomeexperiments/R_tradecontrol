@@ -84,7 +84,7 @@ for (i in 1:length(vector_systems)) {
   # try to extract market type information for that system
   DFT1_MT <- try(import_data_mt(path_T1, trading_system), silent = TRUE)
   # go to the next i if there is no data
-  if(class(DFT1_MT)=="try-error") { next }
+  if(class(DFT1_MT)[1]=="try-error") { next }
     # joining the data with market type info
     trading_systemDF <- inner_join(trading_systemDF, DFT1_MT, by = "TicketNumber")
     # write this data for further debugging or tests
@@ -117,6 +117,7 @@ for (i in 1:length(vector_systems)) {
     
     # record policy to the sandbox of Terminal 3, this should be analysed by EA
     record_policy(x = policy_tr_systDF, trading_system = trading_system, path_sandbox = path_T4)
+    
     
 
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
@@ -159,6 +160,12 @@ if(DF_NT[1,1] == 0) {
       group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 
       # write commands to disable systems
       writeCommandViaCSV(path_T1)}
+  # in this algorithm SystemControl file must be enabled in case there are no MacroEconomic Event
+  if(!class(DFT4)[1]=='try-error'){
+    DFT4 %>%
+      group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 
+      writeCommandViaCSV(path_T4)}
+  
 }
 
 }
