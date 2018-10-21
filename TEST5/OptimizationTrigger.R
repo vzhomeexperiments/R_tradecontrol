@@ -56,8 +56,8 @@ DFT1 %>%  # filtered to contain last 20 orders for each system
   filter(PrFact < 0.7) %>% 
   select(MagicNumber, PrFact) %>% 
   mutate(ToOptimize = 1) %>% 
-  inner_join(y = read_csv(paste0(path_PRJCT_1, "Setup.csv")), by = c("MagicNumber" = "Magic")) %>% 
-  write_csv(path = paste0(path_PRJCT, Sys.Date(), "-Re-Train", ".csv"))
+  inner_join(y = read_csv(file.path(path_PRJCT_1,"TEST", "Setup.csv")), by = c("MagicNumber" = "Magic")) %>% 
+  write_csv(path = paste0(path_PRJCT_1, "TEST/", Sys.Date(), "-Re-Train", ".csv"))
 
 DFT1 %>%  # filtered to contain last 20 orders for each system
   group_by(MagicNumber) %>% 
@@ -68,6 +68,6 @@ DFT1 %>%  # filtered to contain last 20 orders for each system
   filter(PrFact < 0.7) %>% 
   select(MagicNumber, PrFact) %>% 
   mutate(ToOptimize = 1) %>% 
-  inner_join(y = read_csv(paste0(path_PRJCT_2, "Setup.csv")), by = c("MagicNumber" = "Magic")) %>% 
-  write_csv(path = paste0(path_PRJCT, Sys.Date(), "-Re-Train", ".csv"))
+  inner_join(y = read_csv(file.path(path_PRJCT_2,"TEST", "Setup.csv")), by = c("MagicNumber" = "Magic")) %>% 
+  write_csv(path = paste0(path_PRJCT_2, "TEST/", Sys.Date(), "-Re-Train", ".csv"))
 ##======================================== end of script
