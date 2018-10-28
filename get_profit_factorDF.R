@@ -1,21 +1,23 @@
-
-#===============================
-# PROFIT FACTOR FUNCTION
-#===============================
-# function that returns the profit factors of the systems in a form of DataFrame
 #
-# x - data frame with orders
-#     df must contain MagicNumber and Profit columns!
-# x <- read_rds("test_data_profit_factorDF.rds")
-# numOrders - desired number of orders to base profit factor calculation
-# numOrders <- 10
-#
-profit_factorDF <- function(x, numOrders){
+#' Function that returns the profit factors of the systems in a form of DataFrame
+#' 
+#' 
+#'  
+#' @param x - data frame with orders. Note x must contain MagicNumber and Profit columns!
+#' @param num_orders - desired number of orders to base profit factor calculation
+#'
+#' @return - Function return dataframe with column PrFact with calculated profit factor value for each trading robot
+#' @export
+#'
+#' @examples
+get_profit_factorDF <- function(x, num_orders){
   # generate DF with only MagicNumbers when > 10 trades and all trades are losers
+  # x <- read_rds("_TEST_DATA/test_data_profit_factorDF.rds")
+  # num_orders <- 10
   DF_L <- x %>%
     group_by(MagicNumber) %>%
     summarise(nOrders = n())%>%
-    filter(nOrders > numOrders)%>%
+    filter(nOrders > num_orders)%>%
     select(MagicNumber)%>%
     # subset only rows that contans magic numbers from x
     inner_join(x, by = "MagicNumber")%>%
@@ -26,7 +28,7 @@ profit_factorDF <- function(x, numOrders){
   DF_P <- x %>%
     group_by(MagicNumber) %>%
     summarise(nOrders = n())%>%
-    filter(nOrders > numOrders)%>%
+    filter(nOrders > num_orders)%>%
     select(MagicNumber)%>%
     # subset only rows that contans magic numbers from x
     inner_join(x, by = "MagicNumber")%>%

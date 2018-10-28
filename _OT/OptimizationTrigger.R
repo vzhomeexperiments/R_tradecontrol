@@ -19,8 +19,9 @@ library(lubridate)
 # *************Used Functions******************
 # =============================================
 # *** make sure to customize this path
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/profit_factorDF.R")
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/get_profit_factorDF.R")
 source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/check_if_optimize.R")
 
 # =============================================
 # ************End of Used Functions************
@@ -46,34 +47,18 @@ DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 # -------------------------
 
 #### SORTING AND DECIDE IF SYSTEM NEEDS TO BE RE-TRAINED/RE-OPTIMIZED #### -----------------------------
-# 4. Last 20 orders on DEMO && pr.fact < 0.7 SUGGEST TO RE-TRAINE
+# 4. Function that uses last 20 orders on DEMO && pr.fact < 0.7
+
 #
 ### PROJECT 1
 #
-DFT1 %>%  # filtered to contain last 20 orders for each system
-  group_by(MagicNumber) %>% 
-  arrange(MagicNumber, desc(OrderCloseTime)) %>% 
-  filter(row_number() <= 21) %>% 
-  profit_factorDF(20) %>% 
-  ungroup() %>% 
-  filter(PrFact < 0.7) %>% 
-  select(MagicNumber, PrFact) %>% 
-  mutate(ToOptimize = 1) %>% 
-  inner_join(y = read_csv(file.path(path_PRJCT_1,"TEST", "Setup.csv")), by = c("MagicNumber" = "Magic")) %>% 
-  write_csv(path = paste0(path_PRJCT_1, "TEST/", Sys.Date(), "-Re-Train", ".csv"))
-
+DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_1,
+                           num_trades_to_consider = 20,
+                           profit_factor_limit = 0.7)
 #
 ### PROJECT 2
 #
-DFT1 %>%  # filtered to contain last 20 orders for each system
-  group_by(MagicNumber) %>% 
-  arrange(MagicNumber, desc(OrderCloseTime)) %>% 
-  filter(row_number() <= 21) %>% 
-  profit_factorDF(20) %>% 
-  ungroup() %>% 
-  filter(PrFact < 0.7) %>% 
-  select(MagicNumber, PrFact) %>% 
-  mutate(ToOptimize = 1) %>% 
-  inner_join(y = read_csv(file.path(path_PRJCT_2,"TEST", "Setup.csv")), by = c("MagicNumber" = "Magic")) %>% 
-  write_csv(path = paste0(path_PRJCT_2, "TEST/", Sys.Date(), "-Re-Train", ".csv"))
+DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_2,
+                           num_trades_to_consider = 20,
+                           profit_factor_limit = 0.7)
 ##======================================== end of script
