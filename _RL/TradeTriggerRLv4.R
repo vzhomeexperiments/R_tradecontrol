@@ -3,15 +3,21 @@
 # Preferrably to be used only with the courses Lazy Trading see: https://vladdsm.github.io/myblog_attempt/index.html
 # https://www.udemy.com/your-trading-control-reinforcement-learning/?couponCode=LAZYTRADE4-10
 # PURPOSE: Analyse trade results in Terminal 1 and Trigger or Stop Trades in Terminal 3
-# NOTE:    Results are triggered by writing to the file of the MT4 Trading Terminal
-# REINFORCEMENT LEARNING! EXPERIMENTING ONLY! USE AT YOUR OWN RISK!
+# DETAILS: Trades are analysed and RL model is created for each single Expert Advisor
+#        : Q states function is calculated, whenever Action 'ON' is > than 'OFF' trade trigger will be active   
+#        : Results are written to the file of the MT4 Trading Terminal
+# NOTE:    TEST4
+#          : Next action is defined as a random sequence ON/OFF/ON/OFF for the first 10 trades
+#          : specific model is trained
+#          : for the subsequent trades next action is generated using obtained model
+#          : model is retrained using data from the following trades...
+#          : reinforcement learning model objects are not saved
 
 # packages used *** make sure to install these packages
 library(tidyverse) #install.packages("tidyverse")
 library(lubridate) #install.packages("lubridate") 
 library(ReinforcementLearning) #devtools::install_github("nproellochs/ReinforcementLearning")
 library(magrittr)
-library(openssl)
 
 # ----------- Applied Logic -----------------
 # -- Read trading results from Terminal 1
@@ -21,12 +27,12 @@ library(openssl)
 # -- Start/Stop trades on Terminals at MacroEconomic news releases (will be covered in Course #5)
 
 # ----------------
-# Used Functions (to make code more compact)
+# Used Functions (to make code more compact). See detail of each function in the repository
 #-----------------
 # *** make sure to customize this path
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
- source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/apply_policy.R")
- source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/data_4_RL.R")
+ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST4/apply_policy.R")
+ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST4/data_4_RL.R")
  source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
 
 # -------------------------
@@ -39,58 +45,69 @@ path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 path_RL <- paste0(path_T1, "RL/")
 if(!dir.exists(path_RL)){dir.create(path_RL)}
 
-# terminal 4 path *** make sure to customize this path
-path_T4 <- "C:/Program Files (x86)/FxPro - Terminal4/MQL4/Files/"
+# terminal 3 path *** make sure to customize this path
+path_T4 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
-DFT1 <- import_data(path_T1, "OrdersResultsT1.csv")
+DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
+# -------------------------
+# read data from trades in terminal 3
+# -------------------------
+DFT4 <- try(import_data(path_T4, "OrdersResultsT3.csv"), silent = TRUE)
 
 # Vector with unique Trading Systems
 vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
 
+# For debugging: summarise number of trades to see desired number of trades was achieved
+DFT1_sum <- DFT1 %>% 
+  group_by(MagicNumber) %>% 
+  summarise(Num_Trades = n()) %>% 
+  arrange(desc(Num_Trades))
+
 ### ============== FOR EVERY TRADING SYSTEM ###
 for (i in 1:length(vector_systems)) {
-  # i <- 12
+  # tryCatch() function will not abort the entire for loop in case of the error in one iteration
+  tryCatch({
+    # execute this code below for debugging:
+    # i <- 25
+    
+    # extract current magic number id
   trading_system <- vector_systems[i]
-  # get only data for one system 
+  # get trading summary data only for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
-  
+  # write this data for further debugging or tests
+  # write_rds(trading_systemDF,path = "test_data/data_4_RL.rds")
   # get the latest trade of that system (will be used to match with policy of RL)
-  latest_trade <- DFT1 %>% 
-    filter(MagicNumber == trading_system) %>% 
+  latest_trade <- trading_systemDF %>% 
     arrange(desc(OrderCloseTime)) %>% 
     mutate(NextState = ifelse(Profit>0, "tradewin",
                               ifelse(Profit<0, "tradeloss", NA)),
            Reward =  Profit,
            State = NextState) %>% head(1) %$% NextState
   
+  ## -- Exit for Loop if there is too little trades! -- ##
+  if(nrow(trading_systemDF) < 8) { next }
   # -------------------------
   # Perform Data Manipulation for RL
   # -------------------------
-  ### ** ALL TRADES BY THIS SYSTEM **
-  # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
+  ### ** FIRST TRADES BY THIS SYSTEM in T1 **
+  # retrieve the first trades of the trading system (for initial model building)
+  DFRL_start <- trading_systemDF %>% data_4_RL(all_trades = FALSE, num_trades = 6) #use first trades
+
+  ### ** RECENT TRADES BY THIS SYSTEM in T1 **
+  # retrieve the last trades of the trading system (for model update)
+  DFRL_update <- trading_systemDF %>% data_4_RL(all_trades = TRUE, num_trades = 6) #use last trades
   
-  trading_systemDFRL <- trading_systemDF %>% data_4_RL(all_trades = TRUE)
-  
-  ## -- Exit for Loop if there is too little trades! -- ##
-  if(nrow(trading_systemDFRL) <= 7) { next }
-  
-  ### ** RECENT TRADES BY THIS SYSTEM **
-  # add additional column with cumulative profit # group_by(id)%>%mutate(csum=cumsum(value))
-  trading_systemDFRL20 <- trading_systemDF %>% data_4_RL(all_trades = FALSE, num_trades = 20)
-    
   # -------------------------
   # Perform Reinforcement Learning
   # -------------------------
-  # get the unique id of the last trade. This is to know if to retrain the model
-  recent_name <- trading_systemDF %>% tail(1) %>% as.character() %>% as.vector() %>% paste(collapse = "") %>% sha1()
-  recent_name_file <- paste0(path_RL, recent_name)
   
-  # Define state and action sets
+  #==============================================================================
+  # Define state and action sets for Reinforcement Learning
   states <- c("tradewin", "tradeloss")
-  actions <- c("ON", "OFF")
+  actions <- c("ON", "OFF") # 'ON' and 'OFF' are referring to decision to trade with Slave system
   
   # Define reinforcement learning parameters (see explanation below or in vignette)
   # -----
@@ -103,64 +120,37 @@ for (i in 1:length(vector_systems)) {
   #control <- list(alpha = 0.5, gamma = 0.5, epsilon = 0.5)
   #control <- list(alpha = 0.9, gamma = 0.9, epsilon = 0.9)
   #control <- list(alpha = 0.8, gamma = 0.3, epsilon = 0.5)
-  control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1)
+  control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) #TEST4
   # -----
-  # -----------------------------------------------------------------------------
   #==============================================================================
-  # running RL first time when model not exist yet
-  if(!file.exists(recent_name_file)){
-  
-  # perform RL
-  model <- ReinforcementLearning(trading_systemDFRL, s = "State", a = "Action", r = "Reward", 
-                                 s_new = "NextState",iter = 1, control = control)
-  
-  # apply policy based on model
-  #apply_policy(trading_system = trading_system, model = model, last_trade = latest_trade, path_sandbox = path_T4)
-  
-  # save model to file
-  write_rds(model, recent_name_file)
-  } else { 
-    # perform model update
+  # remove model object if exist
+  if(exists("model")) {rm(model)}
+  # Perform initial RL of the first trades of this system
+    model <- ReinforcementLearning(DFRL_start, s = "State", a = "Action", r = "Reward", 
+                                   s_new = "NextState",iter = 1, control = control)
+  # perform RL model update on recent trades of Terminal 1
+    model <- ReinforcementLearning(DFRL_update, s = "State", a = "Action", r = "Reward",
+                                         s_new = "NextState", control = control, iter = 1, model = model)
+    #plot(model)
+    # apply the policy
+    apply_policy(trading_system = trading_system, model = model, last_trade = latest_trade, path_sandbox = path_T4)
+    # save model to file
     
-    # update model
-    model_old <- read_rds(recent_name_file)
-    # model on recent data
-    model_new <- ReinforcementLearning(trading_systemDFRL20, s = "State", a = "Action", r = "Reward",
-                                       s_new = "NextState", control = control, iter = 3, model = model_old)
-    #summary(model_new)
-    # write new model to file
-    write_rds(model_new, recent_name_file)
-    
-    # -------------------------
-    # Apply policy
-    # -------------------------
-    apply_policy(trading_system = trading_system, model = model_new, last_trade = latest_trade, path_sandbox = path_T4)
-    
-    
-    }
-  
   # # debugging policies
   # policy(model)
   # policy(model_new)
   # print(model_new)
   # summary(model_new)
   # plot(model_new)
-  
-  
-  
-  
-  
 
-
+  }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+  
+  
 }
 ### ============== END of FOR EVERY TRADING SYSTEM ###
 
 
 
-# -------------------------
-# read data from trades in terminal 4
-# -------------------------
-DFT4 <- try(import_data(path_T4, "OrdersResultsT4.csv"),silent = TRUE)
 
 
 
@@ -185,4 +175,14 @@ if(DF_NT[1,1] == 1) {
   
   
 }
+# enable systems of T1 in case they were disabled previously
+if(DF_NT[1,1] == 0) {
+  # enable trades
+  if(!class(DFT1)[1]=='try-error'){
+    DFT1 %>%
+      group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 
+      # write commands to disable systems
+      writeCommandViaCSV(path_T1)}
+}
+
 }
