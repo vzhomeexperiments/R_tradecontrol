@@ -29,13 +29,12 @@ library(magrittr)
 # Used Functions (to make code more compact). See detail of each function in the repository
 #-----------------
 # *** make sure to customize this path
- source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
- source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/apply_policy.R")
- source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/data_4_RL.R")
- source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
- source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/import_data_mt.R")
- source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/generate_RL_policy.R")
- source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/TEST5/record_policy.R")
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R") 
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data_mt.R")
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/generate_RL_policy.R")
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/record_policy.R")
+source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
+
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
@@ -43,16 +42,20 @@ library(magrittr)
 path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 
 # terminal 3 path *** make sure to customize this path
-path_T4 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
+path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
+# # uncomment code below to test functionality without MT4 platform installed
+# DFT1 <- try(import_data(trade_log_file = "_TEST_DATA/OrdersResultsT1.csv",
+#                         demo_mode = T),
+#             silent = TRUE)
 DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 # -------------------------
 # read data from trades in terminal 3
 # -------------------------
-DFT4 <- try(import_data(path_T4, "OrdersResultsT3.csv"), silent = TRUE)
+DFT3 <- try(import_data(path_T3, "OrdersResultsT3.csv"), silent = TRUE)
 
 # Vector with unique Trading Systems
 vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
@@ -60,7 +63,8 @@ vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
 # For debugging: summarise number of trades to see desired number of trades was achieved
 DFT1_sum <- DFT1 %>% 
   group_by(MagicNumber) %>% 
-  summarise(Num_Trades = n()) %>% 
+  summarise(Num_Trades = n(),
+            Mean_profit = sum(Profit)) %>% 
   arrange(desc(Num_Trades))
 
 ### ============== FOR EVERY TRADING SYSTEM ###
@@ -95,11 +99,11 @@ for (i in 1:length(vector_systems)) {
     # epsilon - sampling rate    0.1 <- high sample| low sample  -> 0.9
     # iter 
     # ----- 
-    # to uncommend desired learning parameters:
+    # to uncomment desired learning parameters:
     #control <- list(alpha = 0.5, gamma = 0.5, epsilon = 0.5)
     #control <- list(alpha = 0.9, gamma = 0.9, epsilon = 0.9)
     #control <- list(alpha = 0.8, gamma = 0.3, epsilon = 0.5)
-    control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) #TEST4
+    control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) 
     # -----
     #==============================================================================
     
@@ -109,7 +113,7 @@ for (i in 1:length(vector_systems)) {
                                            control = control)
     
     # record policy to the sandbox of Terminal 3, this should be analysed by EA
-    record_policy(x = policy_tr_systDF, trading_system = trading_system, path_sandbox = path_T4)
+    record_policy(x = policy_tr_systDF, trading_system = trading_system, path_sandbox = path_T3)
     
     
 
