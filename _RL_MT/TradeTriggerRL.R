@@ -17,13 +17,21 @@ library(lubridate) #install.packages("lubridate")
 library(ReinforcementLearning) #devtools::install_github("nproellochs/ReinforcementLearning")
 library(magrittr)
 
-# ----------- Applied Logic -----------------
+# ----------- Main Steps -----------------
 # -- Read trading results from Terminal 1
-# -- Read market type logs from Terminal 1
 # -- Rearrange data for RL
 # -- Perform Reinforcement Learning or Update Model with New Data
 # -- Start/Stop trades in Terminal 3 based on New Policy
-# -- Start/Stop trades on Terminals at MacroEconomic news releases (covered in Course #5)
+# -- Start/Stop trades on Terminals at MacroEconomic news releases (will be covered in Course #5)
+
+# ----------- TESTS -----------------
+# -- Select entire content of the script and execute
+# -- Pass: Data object DFT1 contains observations
+# -- Pass: DFT1_sum contains trades summary
+# -- Pass: Files SystemControlXXXXXXX.csv are generated in the Terminal 3 sandbox
+# -- Pass: If file "01_MacroeconomicEvent.csv" exists trade policy is overwritten
+# -- Fail: DFT1 class 'try-error'
+# -- Fail: xxx
 
 # ----------------
 # Used Functions (to make code more compact). See detail of each function in the repository
@@ -72,7 +80,7 @@ for (i in 1:length(vector_systems)) {
   # tryCatch() function will not abort the entire for loop in case of the error in one iteration
   tryCatch({
     # execute this code below for debugging:
-    # i <- 2
+    # i <- 35
     
   # extract current magic number id
   trading_system <- vector_systems[i]
@@ -134,35 +142,35 @@ for (i in 1:length(vector_systems)) {
 # this will be covered in the Course #5 of the Lazy Trading Series!
 # -------------------------
 if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
-DF_NT <- read_csv(file= file.path(path_T1, "01_MacroeconomicEvent.csv"), col_types = "i")
-if(DF_NT[1,1] == 1) {
-  # disable trades
-  if(!class(DFT1)[1]=='try-error'){
-  DFT1 %>%
-    group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
-    # write commands to disable systems
-    writeCommandViaCSV(path_T1)}
-  if(!class(DFT4)[1]=='try-error'){
-  DFT4 %>%
-    group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
-    writeCommandViaCSV(path_T4)}
+  DF_NT <- read_csv(file= file.path(path_T1, "01_MacroeconomicEvent.csv"), col_types = "i")
+  if(DF_NT[1,1] == 1) {
+    # disable trades
+    if(!class(DFT1)[1]=='try-error'){
+      DFT1 %>%
+        group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
+        # write commands to disable systems
+        writeCommandViaCSV(path_T1)}
+    if(!class(DFT3)[1]=='try-error'){
+      DFT3 %>%
+        group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
+        writeCommandViaCSV(path_T3)}
+    
+    
+  }
+  # enable systems of T1 in case they were disabled previously
+  if(DF_NT[1,1] == 0) {
+    # enable trades
+    if(!class(DFT1)[1]=='try-error'){
+      DFT1 %>%
+        group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 
+        # write commands to disable systems
+        writeCommandViaCSV(path_T1)}
+    # in this algorithm SystemControl file must be enabled in case there are no MacroEconomic Event
+    if(!class(DFT3)[1]=='try-error'){
+      DFT3 %>%
+        group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 
+        writeCommandViaCSV(path_T3)}
+    
+  }
   
-  
-}
-# enable systems of T1 in case they were disabled previously
-if(DF_NT[1,1] == 0) {
-  # enable trades
-  if(!class(DFT1)[1]=='try-error'){
-    DFT1 %>%
-      group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 
-      # write commands to disable systems
-      writeCommandViaCSV(path_T1)}
-  # in this algorithm SystemControl file must be enabled in case there are no MacroEconomic Event
-  if(!class(DFT4)[1]=='try-error'){
-    DFT4 %>%
-      group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 
-      writeCommandViaCSV(path_T4)}
-  
-}
-
 }
