@@ -28,7 +28,8 @@ import_data <- function(path_terminal, trade_log_file, demo_mode = F){
   
   } else {
     
-    DFT1 <- try(read_csv(file = trade_log_file, 
+    
+    DFT1 <- try(read_csv(file = file.path("_TEST_DATA",trade_log_file), 
                          col_names = c("MagicNumber", "TicketNumber", "OrderStartTime", 
                                        "OrderCloseTime", "Profit", "Symbol", "OrderType"),
                          col_types = "iiccdci"),
