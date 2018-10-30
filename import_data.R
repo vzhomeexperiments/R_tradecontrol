@@ -13,7 +13,7 @@
 import_data <- function(path_terminal, trade_log_file, demo_mode = F){
   ### uncomment for debugging of this function
   # path_terminal <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
-  # trade_log_file <- "OrdersResultsT1.csv"
+  # trade_log_file <- "_TEST_DATA/OrdersResultsT1.csv"
   # demo_mode <- T
   require(tidyverse)
   require(lubridate)
@@ -29,7 +29,7 @@ import_data <- function(path_terminal, trade_log_file, demo_mode = F){
   } else {
     
     
-    DFT1 <- try(read_csv(file = file.path("_TEST_DATA",trade_log_file), 
+    DFT1 <- try(read_csv(file = trade_log_file, 
                          col_names = c("MagicNumber", "TicketNumber", "OrderStartTime", 
                                        "OrderCloseTime", "Profit", "Symbol", "OrderType"),
                          col_types = "iiccdci"),
