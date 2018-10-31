@@ -10,13 +10,16 @@
 #' @param last_result - character vector of the last result of the trade
 #' 
 #' @return nothing is returned
-#' @export function creates csv file
+#' @export - function creates csv file
 #' @example record_policy(x = policy_tr_systDF, trading_system = trading_system, path_sandbox = path_T4)
 #' 
 record_policy <- function(x, last_result, trading_system, path_sandbox){
+  require(tidyverse)
+  require(magrittr)
   # debugging
-  # trading_system <- 8118105
+  # trading_system <- 8118101
   # last_result <- "tradeloss"
+  # x <- read_rds("_TEST_DATA/TradeStatePolicy.rds")
   # x <- policy_tr_systDF
   # path_sandbox <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 # derive which terminal should be enabled (using path to sandbox) and using variable 'addition'

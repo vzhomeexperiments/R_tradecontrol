@@ -11,7 +11,7 @@
 # packages used *** make sure to install these packages
 library(tidyverse) #install.packages("tidyverse")
 library(lubridate) #install.packages("lubridate") 
-library(ReinforcementLearning) #devtools::install_github("nproellochs/ReinforcementLearning")
+library(ReinforcementLearning) #install.packages("ReinforcementLearning")
 library(magrittr)
 
 # ----------- Main Steps -----------------
@@ -76,7 +76,8 @@ for (i in 1:length(vector_systems)) {
   # tryCatch() function will not abort the entire for loop in case of the error in one iteration
   tryCatch({
     # execute this code below for debugging:
-    # i <- 5
+    # i <- 7 #policy off
+    # i <- 2 #policy on
     
     # extract current magic number id
   trading_system <- vector_systems[i]
@@ -102,8 +103,8 @@ for (i in 1:length(vector_systems)) {
   # NOTE: more research is required to find best parameters TDL TDL TDL
   #control <- list(alpha = 0.5, gamma = 0.5, epsilon = 0.5)
   #control <- list(alpha = 0.9, gamma = 0.9, epsilon = 0.9)
-  control <- list(alpha = 0.1, gamma = 0.2, epsilon = 0.5)
-  #control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) 
+  #control <- list(alpha = 0.7, gamma = 0.5, epsilon = 0.9)
+  control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) 
   
   # perform reinforcement learning and return policy
   policy_tr_systDF <- generate_RL_policy(trading_systemDF, states = states,actions = actions,
