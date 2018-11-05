@@ -38,6 +38,7 @@ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R"
 source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/generate_RL_policy.R")
 source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/record_policy.R")
 source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
+
  
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
@@ -48,10 +49,13 @@ path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 # terminal 3 path *** make sure to customize this path
 path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 
+# path where to read control parameters from
+path_control_files = "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/control"
+
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
-# # uncomment code below to test functionality without MT4 platform installed
+# uncomment code below to test functionality without MT4 platform installed
 # DFT1 <- try(import_data(trade_log_file = "_TEST_DATA/OrdersResultsT1.csv",
 #                         demo_mode = T),
 #             silent = TRUE)
@@ -99,12 +103,10 @@ for (i in 1:length(vector_systems)) {
   # epsilon - sampling rate    0.1 <- high sample| low sample  -> 0.9
   # iter 
   # ----- 
-  # to uncomment desired learning parameters:
-  # NOTE: more research is required to find best parameters TDL TDL TDL
-  #control <- list(alpha = 0.5, gamma = 0.5, epsilon = 0.5)
-  #control <- list(alpha = 0.9, gamma = 0.9, epsilon = 0.9)
-  #control <- list(alpha = 0.7, gamma = 0.5, epsilon = 0.9)
-  control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) 
+  #control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1)
+  # Use optimal control parameters found by auxiliary function
+  control <- read_rds(paste0(path_control_files,"/", trading_system, ".rds"))
+  #control <- read_rds(paste0(path_control_files,"/", 8118102, ".rds"))
   
   # perform reinforcement learning and return policy
   policy_tr_systDF <- generate_RL_policy(trading_systemDF, states = states,actions = actions,

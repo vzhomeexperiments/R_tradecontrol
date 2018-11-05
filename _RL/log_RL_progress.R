@@ -1,21 +1,15 @@
-# -------------------------
-# Perform RL and generate model policy
-# -------------------------
-# FUNCTION generate_RL_policy
-
-#' This function will perform Reinforcement Learning using Trading Data. It should start working directly from the start
-#' The output will contain total reward obtained during learning. Function created for the purpose of research of the best control parameters
+#' Function to log RL progress. Function will record Q values during updating of the model
 #'
-#' @param x - Dataframe containing trading data 
+#' @param x - dataframe containing trading results
 #' @param states 
 #' @param actions 
 #' @param control 
 #'
-#' @return Function returns data frame with reinforcement learning model policy
+#' @return
 #' @export
 #'
 #' @examples
-research_RL_control <- function(x, states, actions, control, research = T){
+log_RL_progress <- function(x, states, actions, control){
   require(tidyverse)
   require(ReinforcementLearning)
   require(magrittr)
@@ -35,7 +29,7 @@ research_RL_control <- function(x, states, actions, control, research = T){
                          stringsAsFactors = F)
   # generate RL model
   model <- ReinforcementLearning(d_tupple, s = "State", a = "Action", r = "Reward", 
-                                 s_new = "NextState",iter = 2, control = control)
+                                 s_new = "NextState",iter = 1, control = control)
   
   # add rows of the x one by one to gradually update this model
   for (i in 2:nrow(x)) {
@@ -64,28 +58,23 @@ research_RL_control <- function(x, states, actions, control, research = T){
     model <- ReinforcementLearning(df_tupple, s = "State", a = "Action", r = "Reward",
                                    s_new = "NextState", control = control, iter = 1, model = model)
     #model$Q
+    
+      # generate dataframe with reward sequence of this learning
+      df_q <- data.frame(alpha = control$alpha, gamma = control$gamma, epsilon = control$epsilon, 
+                         trstate = model$States, rewardseq = model$Q, totreward = model$Reward)
+    
+      # create dataframe that will append data to previous records
+      if(!exists("df_Q")){df_Q <- df_q} else {
+        df_Q <- bind_rows(df_Q, df_q)
+      }
+      
     #print(i)
     
   }
   
+  
   #plot(model)
+  # return log of RL model
+  return(df_Q)
   
-  # extract custom policy from the obtained dataset
-  df_Q <- model$Q %>% as.data.frame() %>% 
-    # create column with market periods
-    mutate(TradeState = row.names(.)) %>% 
-    # interpret policy as defined logic, value at ON must be >= 0!
-    mutate(Policy = ifelse(ON <= 0, "OFF", ifelse(ON > OFF, "ON", ifelse(OFF > ON, "OFF", NA)))) %>% 
-    select(TradeState, Policy) 
-    # record this object for the function debugging
-    # write_rds(df_Q, "_TEST_DATA/TradeStatePolicy.rds")
-  
-  # in case of Research parameter is equal to true we will record and output reward sequence together with control parameters
-  if(research = T){
-  # generate dataframe with reward sequence of this learning
-  df_Q <- data.frame(alpha = control$alpha, gamma = control$gamma, epsylon = control$epsilon, rewardseq = model$RewardSequence)
-  }
-   #plot(model)
-   return(df_Q)
-
 }
