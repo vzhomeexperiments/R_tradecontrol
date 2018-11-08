@@ -43,11 +43,11 @@ path_control_files = "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
-# uncomment code below to test functionality without MT4 platform installed
-DFT1 <- try(import_data(trade_log_file = "_TEST_DATA/OrdersResultsT1.csv",
-                        demo_mode = T),
-            silent = TRUE)
-#DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
+# # uncomment code below to test functionality without MT4 platform installed
+# DFT1 <- try(import_data(trade_log_file = "_TEST_DATA/OrdersResultsT1.csv",
+#                         demo_mode = T),
+#             silent = TRUE)
+DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 
 # Vector with unique Trading Systems
 vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
