@@ -47,7 +47,7 @@ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandVi
 path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 
 # terminal 3 path *** make sure to customize this path
-path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
+path_T3 <- "C:/Program Files (x86)/FxPro - Terminal4/MQL4/Files/"
 
 # path where to read control parameters from
 path_control_files = "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/control"
@@ -63,7 +63,7 @@ DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 # -------------------------
 # read data from trades in terminal 3
 # -------------------------
-DFT3 <- try(import_data(path_T4, "OrdersResultsT3.csv"), silent = TRUE)
+DFT3 <- try(import_data(path_T4, "OrdersResultsT4.csv"), silent = TRUE)
 
 # Vector with unique Trading Systems
 vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
@@ -104,6 +104,8 @@ for (i in 1:length(vector_systems)) {
   # iter 
   # ----- 
   #control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1)
+  # check existence of the file with control parameters, go to next if not exists
+  if(!file.exists(paste0(path_control_files,"/", trading_system, ".rds"))) { next }
   # Use optimal control parameters found by auxiliary function
   control <- read_rds(paste0(path_control_files,"/", trading_system, ".rds"))
   #control <- read_rds(paste0(path_control_files,"/", 8118102, ".rds"))

@@ -43,6 +43,7 @@ path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 # trading system project folder
 path_PRJCT_1 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/"
 path_PRJCT_2 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_F2/"
+path_PRJCT_3 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_B/"
 
 # -------------------------
 # read data from trades in terminal 1
@@ -76,6 +77,13 @@ DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_1,
 ### PROJECT 2
 #
 DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_2,
+                           num_trades_to_consider = 20,
+                           profit_factor_limit = 0.7)
+##======================================== end of script
+
+### PROJECT 3
+#
+DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_3,
                            num_trades_to_consider = 20,
                            profit_factor_limit = 0.7)
 ##======================================== end of script
