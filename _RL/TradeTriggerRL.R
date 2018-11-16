@@ -47,7 +47,7 @@ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandVi
 path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 
 # terminal 3 path *** make sure to customize this path
-path_T3 <- "C:/Program Files (x86)/FxPro - Terminal4/MQL4/Files/"
+path_T4 <- "C:/Program Files (x86)/FxPro - Terminal4/MQL4/Files/"
 
 # path where to read control parameters from
 path_control_files = "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/control"
