@@ -87,6 +87,6 @@ DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_2,
 ### PROJECT 3
 #
 DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_3,
-                           num_trades_to_consider = 20,
+                           num_trades_to_consider = 15,
                            profit_factor_limit = 0.7)
 ##======================================== end of script
