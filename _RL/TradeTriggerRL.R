@@ -80,7 +80,7 @@ for (i in 1:length(vector_systems)) {
   # tryCatch() function will not abort the entire for loop in case of the error in one iteration
   tryCatch({
     # execute this code below for debugging:
-    # i <- 7 #policy off
+    # i <- 17 #policy off
     # i <- 2 #policy on
     
     # extract current magic number id
@@ -123,7 +123,7 @@ for (i in 1:length(vector_systems)) {
            State = NextState) %>% head(1) %$% NextState
   
   # record policy to the sandbox of Terminal 3, this should be analysed by EA
-  record_policy(x = policy_tr_systDF, last_result = latest_trade, trading_system = trading_system, path_sandbox = path_T3)
+  record_policy(x = policy_tr_systDF, last_result = latest_trade, trading_system = trading_system, path_sandbox = path_T4)
   
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
