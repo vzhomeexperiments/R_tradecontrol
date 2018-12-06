@@ -150,7 +150,7 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
     if(!class(DFT3)[1]=='try-error'){
       DFT3 %>%
         group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
-        writeCommandViaCSV(path_T3)}
+        writeCommandViaCSV(path_T4)}
     
     
   }
