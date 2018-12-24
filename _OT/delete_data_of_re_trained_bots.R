@@ -1,5 +1,6 @@
 ## Delete records related to re-trained trading robots [specific to FALCON A]
 library(tidyverse)
+library(magrittr)
 source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
 source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/get_profit_factorDF.R")
 source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
@@ -46,6 +47,17 @@ DFT_x1 <- DFT1 %>%
 # disable systems in the slave terminal before deleting them
 # terminal 3 path *** make sure to customize this path
 path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
+
+# delete control parameters of affected systems
+# vector of magic number names
+control_files <- DFT_x %$% MagicNumber
+for (CTRLN in control_files) {
+  # CTRLN <- 8118101
+  CTRL_FILE <- file.path("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/control", paste0(CTRLN, ".rds"))
+  if(file.exists(CTRL_FILE)){
+    file.remove(CTRL_FILE)
+  }
+}
 
 # generate trading systems with correct magic number to disactivate
 DFT_x %>% 

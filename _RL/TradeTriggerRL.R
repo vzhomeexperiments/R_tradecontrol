@@ -47,7 +47,7 @@ source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandVi
 path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 
 # terminal 3 path *** make sure to customize this path
-path_T4 <- "C:/Program Files (x86)/FxPro - Terminal4/MQL4/Files/"
+path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 
 # path where to read control parameters from
 path_control_files = "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/control"
@@ -63,7 +63,7 @@ DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 # -------------------------
 # read data from trades in terminal 3
 # -------------------------
-DFT3 <- try(import_data(path_T4, "OrdersResultsT4.csv"), silent = TRUE)
+DFT3 <- try(import_data(path_T3, "OrdersResultsT3.csv"), silent = TRUE)
 
 # Vector with unique Trading Systems
 vector_systems <- DFT1 %$% MagicNumber %>% unique() %>% sort()
@@ -123,7 +123,7 @@ for (i in 1:length(vector_systems)) {
            State = NextState) %>% head(1) %$% NextState
   
   # record policy to the sandbox of Terminal 3, this should be analysed by EA
-  record_policy(x = policy_tr_systDF, last_result = latest_trade, trading_system = trading_system, path_sandbox = path_T4)
+  record_policy(x = policy_tr_systDF, last_result = latest_trade, trading_system = trading_system, path_sandbox = path_T3)
   
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
@@ -150,7 +150,7 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
     if(!class(DFT3)[1]=='try-error'){
       DFT3 %>%
         group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
-        writeCommandViaCSV(path_T4)}
+        writeCommandViaCSV(path_T3)}
     
     
   }
