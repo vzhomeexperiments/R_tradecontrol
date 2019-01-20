@@ -158,8 +158,9 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
   if(DF_NT[1,1] == 0) {
     # enable trades
     if(!class(DFT1)[1]=='try-error'){
-      DFT1 %>%
-        group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 
+      # temporary solution: enable trades from the working project
+      read_csv("C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST/Setup.csv") %>%
+        group_by(Magic) %>% select(Magic) %>% mutate(IsEnabled = 1) %>% 
         # write commands to disable systems
         writeCommandViaCSV(path_T1)}
 
@@ -167,3 +168,5 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
   }
   
 }
+
+

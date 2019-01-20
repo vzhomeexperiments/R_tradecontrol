@@ -74,8 +74,8 @@ DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 ### PROJECT 1
 #
 DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_1,
-                           num_trades_to_consider = 20,
-                           profit_factor_limit = 1.0)
+                           num_trades_to_consider = 10,
+                           profit_factor_limit = 1.2)
 #
 ### PROJECT 2
 #
