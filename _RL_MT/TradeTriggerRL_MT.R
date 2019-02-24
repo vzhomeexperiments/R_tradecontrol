@@ -133,6 +133,9 @@ for (i in 1:length(vector_systems)) {
     policy_tr_systDF <- generate_RL_policy(trading_systemDF, states = states,actions = actions,
                                            control = control)
     
+    # # summarize results by Market Type
+    # trading_systemDF %>% group_by(MarketType) %>% summarise(ProfitMT = sum(Profit))
+    
     # record policy to the sandbox of Terminal 3, this should be analysed by EA
     record_policy(x = policy_tr_systDF, trading_system = trading_system, path_sandbox = path_T3)
     
@@ -177,13 +180,13 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
       read_csv("C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST/Setup.csv") %>%
         group_by(Magic) %>% select(Magic) %>% mutate(IsEnabled = 1) %>% 
         # write commands to disable systems
-        writeCommandViaCSV(path_T1)}
-    # enable trades of T3
-    if(!class(DFT3)[1]=='try-error'){
+        writeCommandViaCSV(path_T1)
       # temporary solution: enable trades from the working project
       read_csv("C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST/Setup.csv") %>%
-        group_by(Magic) %>% select(Magic) %>% 
-        mutate(Magic = Magic + 200, IsEnabled = 1) %>% 
+        group_by(Magic) %>% 
+        mutate(MagicNumber = Magic + 200, IsEnabled = 1) %>% 
+        group_by(MagicNumber) %>% 
+        select(MagicNumber, IsEnabled) %>% 
         # write commands to disable systems
         writeCommandViaCSV(path_T3)}
     
