@@ -94,12 +94,12 @@ for (i in 1:length(vector_systems)) {
   trading_system <- vector_systems[i]
   # get trading summary data only for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
-  # try to extract market type information for that system
-  DFT1_MT <- try(import_data_mt(path_T1, trading_system), silent = TRUE)
+  # try to extract market type information for that system, filter rows where MarketType was not logged!
+  DFT1_MT <- try(import_data_mt(path_T1, trading_system), silent = TRUE) %>% filter(MarketType != -1)
   # go to the next i if there is no data
   if(class(DFT1_MT)[1]=="try-error") { next }
     # joining the data with market type info
-    trading_systemDF <- inner_join(trading_systemDF, DFT1_MT, by = "TicketNumber")
+    trading_systemDF <- inner_join(trading_systemDF, DFT1_MT, by = "TicketNumber") 
     # write this data for further debugging or tests
     # write_rds(trading_systemDF,path = "test_data/data_trades_markettype.rds")
     
