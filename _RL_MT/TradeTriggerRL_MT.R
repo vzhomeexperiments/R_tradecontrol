@@ -160,7 +160,7 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
   #read the file containing a flag (1 will mean that event is present hence no new opened orders)
   DF_NT <- read_csv(file= file.path(path_T1, "01_MacroeconomicEvent.csv"), col_types = "i")
   #read the table of trading robots in operation
-  DF_Setup <- read_csv("C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST/Setup.csv")
+  DF_Setup <- read_csv("C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_F2/TEST/Setup.csv")
   
   ## condition to disable systems
   if(DF_NT[1,1] == 1) {
