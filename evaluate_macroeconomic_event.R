@@ -1,3 +1,15 @@
+#' Function used to evaluate market type situation by reading the file. It will enable or disable trading robots
+#' accordingly. To be used exclusively with Market Type recognition system
+#'
+#' @param setup_path Path with trading robots magic numbers
+#' @param file_name Name of the file
+#' @param path_t1 Path of the Terminal 1
+#' @param path_t3 Path of the Terminal 2
+#'
+#' @return
+#' @export
+#'
+#' @examples
 evaluate_macroeconomic_event <- function(setup_path, file_name, path_t1, path_t3){
   
   # setup_path <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_F2/TEST/Setup.csv"
