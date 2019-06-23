@@ -22,6 +22,7 @@ library(tidyverse) #install.packages("tidyverse")
 library(lubridate) #install.packages("lubridate") 
 library(ReinforcementLearning) #devtools::install_github("nproellochs/ReinforcementLearning")
 library(magrittr)
+library(lazytrade)
 
 # ----------- Main Steps -----------------
 # -- Read trading results from Terminal 1
@@ -43,12 +44,12 @@ library(magrittr)
 # Used Functions (to make code more compact). See detail of each function in the repository
 #-----------------
 # *** make sure to customize this path
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R") 
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data_mt.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/generate_RL_policy.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/record_policy.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/evaluate_macroeconomic_event.R")
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R") 
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data_mt.R")
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/generate_RL_policy.R")
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/record_policy.R")
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/evaluate_macroeconomic_event.R")
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
@@ -103,7 +104,11 @@ for (i in 1:length(vector_systems)) {
   # get trading summary data only for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
   # try to extract market type information for that system, filter rows where MarketType was not logged!
-  DFT1_MT <- try(import_data_mt(path_T1, trading_system), silent = TRUE) %>% filter(MarketType != -1)
+  DFT1_MT <- try(import_data_mt(path_terminal = path_T1,
+                                system_number = trading_system,
+                                demo_mode = FALSE),
+                 silent = TRUE) %>%
+    filter(MarketType != -1)
   # go to the next i if there is no data
   if(class(DFT1_MT)[1]=="try-error") { next }
     # joining the data with market type info
@@ -138,14 +143,16 @@ for (i in 1:length(vector_systems)) {
     
     
     # perform reinforcement learning and return policy
-    policy_tr_systDF <- generate_RL_policy(trading_systemDF, states = states,actions = actions,
-                                           control = control)
+    policy_tr_systDF <- generate_RL_policy_mt(x = trading_systemDF,
+                                              states = states,
+                                              actions = actions,
+                                              control = control)
     
     # # summarize results by Market Type
     # trading_systemDF %>% group_by(MarketType) %>% summarise(ProfitMT = sum(Profit))
     
     # record policy to the sandbox of Terminal 3, this should be analysed by EA
-    record_policy(x = policy_tr_systDF, trading_system = trading_system, path_sandbox = path_T3)
+    record_policy_mt(x = policy_tr_systDF, trading_system = trading_system, path_sandbox = path_T3)
     
     
 
