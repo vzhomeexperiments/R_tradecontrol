@@ -9,6 +9,7 @@
 # load packages. 
 library(tidyverse)
 library(lubridate)
+library(lazytrade)
 
 # ----------- Main Steps -----------------
 # -- Read trading results from Terminal 1
@@ -26,9 +27,10 @@ library(lubridate)
 # *************Used Functions******************
 # =============================================
 # *** make sure to customize this path
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/get_profit_factorDF.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/check_if_optimize.R")
+# Update: below functions are added to the R package
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/get_profit_factorDF.R")
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/check_if_optimize.R")
 
 # =============================================
 # ************End of Used Functions************
@@ -70,7 +72,7 @@ DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 #                            profit_factor_limit = 0.7,
 #                            demo_mode = T)
 
-#
+# Results will be written to the file in the respective folder
 ### PROJECT 1
 #
 DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_1,

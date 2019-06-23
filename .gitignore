@@ -41,3 +41,4 @@ TEST4/TradeTriggerRL.bat
 TEST4/TradeTriggerRLv3.R
 _RL/research_control_parameters.R
 _RL_MT/control/*.rds
+*.rds

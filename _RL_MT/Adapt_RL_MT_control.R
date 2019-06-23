@@ -10,6 +10,7 @@ library(tidyverse) #install.packages("tidyverse")
 library(lubridate) #install.packages("lubridate") 
 library(ReinforcementLearning) #install.packages("ReinforcementLearning")
 library(magrittr)
+library(lazytrade) #install.packages("lazytrade")
 
 # ----------- Main Steps -----------------
 # -- Read trading results from Terminal 1
@@ -29,16 +30,16 @@ library(magrittr)
 # Used Functions (to make code more compact). See detail of each function in the repository
 #-----------------
 # *** make sure to customize this path
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R") 
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data_mt.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/write_control_parameters_mt.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/log_RL_progress.R")
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R") 
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data_mt.R")
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/write_control_parameters_mt.R")
+#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/log_RL_progress.R")
  
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
 # terminal 1 path *** make sure to customize this path
-path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
+path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files"
 
 # path with folder containing control parameters
 path_control_files = "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/control"
@@ -74,7 +75,9 @@ for (i in 1:length(vector_systems)) {
   # get trading summary data only for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
   # try to extract market type information for that system
-  DFT1_MT <- try(import_data_mt(path_T1, trading_system), silent = TRUE)
+  DFT1_MT <- try(import_data_mt(path_terminal = path_T1, 
+                                system_number =  trading_system),
+                 silent = TRUE)
   # go to the next i if there is no data
   if(class(DFT1_MT)[1]=="try-error") { next }
   # joining the data with market type info
@@ -103,8 +106,7 @@ for (i in 1:length(vector_systems)) {
   #control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) 
   
   # or to use optimal control parameters found by auxiliary function
-  write_control_parameters_mt(trading_systemDF, 
-                              path_control_files = path_control_files)
+  write_control_parameters_mt(x = trading_systemDF, path_control_files = path_control_files)
   #cntrl <- read_rds(paste0(path_control_files, "/", trading_system, ".rds"))
   #cntrl <- read_rds(paste0(path_control_files, "/", 8139106, ".rds"))
   
