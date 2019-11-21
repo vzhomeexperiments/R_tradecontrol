@@ -62,10 +62,20 @@ path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 # path where to read control parameters from
 path_control_files = "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/control"
 
-# evaluate data on macroeconomic event (required to start trading)
-evaluate_macroeconomic_event(setup_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_F2/TEST/Setup.csv",
-                             file_name = "01_MacroeconomicEvent.csv",
-                             path_t1 = path_T1,path_t3 = path_T3)
+# evaluate data on macroeconomic event (required to start trading) FALCON_F2
+evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_F2/TEST",
+                             setup_file_name = "Setup.csv",
+                             macro_event_path = path_T1,
+                             macro_file_name = "01_MacroeconomicEvent.csv",
+                             path_T1 = path_T1, path_T3 = path_T3)
+
+# evaluate data on macroeconomic event (required to start trading) FALCON_A
+evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST",
+                             setup_file_name = "Setup.csv",
+                             macro_event_path = path_T1,
+                             macro_file_name = "01_MacroeconomicEvent.csv",
+                             path_T1 = path_T1, path_T3 = path_T3)
+
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
@@ -152,7 +162,10 @@ for (i in 1:length(vector_systems)) {
     # trading_systemDF %>% group_by(MarketType) %>% summarise(ProfitMT = sum(Profit))
     
     # record policy to the sandbox of Terminal 3, this should be analysed by EA
-    record_policy_mt(x = policy_tr_systDF, trading_system = trading_system, path_sandbox = path_T3)
+    record_policy_mt(x = policy_tr_systDF, 
+                     trading_system = trading_system,
+                     path_terminal = path_T3,
+                     fileName = "SystemControlMT")
     
     
 

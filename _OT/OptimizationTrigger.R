@@ -70,25 +70,32 @@ DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 # Uncomment code chunk below
 # DFT1 %>% check_if_optimize(num_trades_to_consider = 10,
 #                            profit_factor_limit = 0.7,
-#                            demo_mode = T)
+#                            demo_mode = TRUE,
+#                            write_mode = FALSE)
 
 # Results will be written to the file in the respective folder
 ### PROJECT 1
 #
 DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_1,
                            num_trades_to_consider = 10,
-                           profit_factor_limit = 1.2)
+                           profit_factor_limit = 1.2,
+                           demo_mode = FALSE,
+                           write_mode = TRUE)
 #
 ### PROJECT 2
 #
 DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_2,
                            num_trades_to_consider = 20,
-                           profit_factor_limit = 1.0)
+                           profit_factor_limit = 1.0,
+                           demo_mode = FALSE,
+                           write_mode = TRUE)
 ##======================================== end of script
 
 ### PROJECT 3
 #
 DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_3,
                            num_trades_to_consider = 15,
-                           profit_factor_limit = 1.0)
+                           profit_factor_limit = 1.0,
+                           demo_mode = FALSE,
+                           write_mode = TRUE)
 ##======================================== end of script
