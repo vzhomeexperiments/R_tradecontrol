@@ -7,7 +7,7 @@ This repository was created to help Algorithmic Trader to supervise Trading Robo
 
 ## Learn how to apply that tool in practice
 
-Join *Udemy Course* using this [coupon](https://www.udemy.com/your-trading-control-reinforcement-learning/?couponCode=LAZYTRADE4-10)
+Join *Udemy Course* using this [referral coupon](https://www.udemy.com/course/your-trading-control-reinforcement-learning/?referralCode=7AB82127FC5C2334AE8D)
 
 ## Detail
 

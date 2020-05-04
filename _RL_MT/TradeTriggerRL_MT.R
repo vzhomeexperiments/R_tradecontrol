@@ -18,7 +18,10 @@
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # packages used *** make sure to install these packages
-library(tidyverse) #install.packages("tidyverse")
+#library(tidyverse) #install.packages("tidyverse")
+library(readr)
+library(stringr)
+library(dplyr)
 library(lubridate) #install.packages("lubridate") 
 library(ReinforcementLearning) #devtools::install_github("nproellochs/ReinforcementLearning")
 library(magrittr)
@@ -71,6 +74,13 @@ evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_T
 
 # evaluate data on macroeconomic event (required to start trading) FALCON_A
 evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST",
+                             setup_file_name = "Setup.csv",
+                             macro_event_path = path_T1,
+                             macro_file_name = "01_MacroeconomicEvent.csv",
+                             path_T1 = path_T1, path_T3 = path_T3)
+
+# evaluate data on macroeconomic event (required to start trading) FALCON_T
+evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_T/TEST",
                              setup_file_name = "Setup.csv",
                              macro_event_path = path_T1,
                              macro_file_name = "01_MacroeconomicEvent.csv",

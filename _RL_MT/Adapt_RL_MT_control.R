@@ -6,7 +6,9 @@
 # METHOD: Sums of outcomes for each sets of control parameters are calculated to generate best set of control parameters
 
 # packages used *** make sure to install these packages
-library(tidyverse) #install.packages("tidyverse")
+#library(tidyverse) #install.packages("tidyverse")
+library(readr)
+library(dplyr)
 library(lubridate) #install.packages("lubridate") 
 library(ReinforcementLearning) #install.packages("ReinforcementLearning")
 library(magrittr)
