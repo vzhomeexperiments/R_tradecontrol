@@ -2,8 +2,8 @@
 # This is a dedicated script for the Lazy Trading 6th Course: Detect Market Type with Artificial Intelligence
 # Copyright (C) 2019 Vladimir Zhbanko
 # Preferrably to be used only with the courses Lazy Trading see: https://vladdsm.github.io/myblog_attempt/index.html
-# https://www.udemy.com/your-trading-control-reinforcement-learning/?couponCode=LAZYTRADE4-10
-# https://www.udemy.com/detect-market-status-with-ai/?couponCode=LAZYTRADE6-10
+# https://www.udemy.com/course/your-trading-control-reinforcement-learning/?referralCode=7AB82127FC5C2334AE8D
+# https://www.udemy.com/course/detect-market-status-with-ai/?referralCode=B5158326287C6D2C0DEF
 # PURPOSE: Analyse trade results in Terminal 1 and Trigger or Stop Trades in Terminal 3
 # DETAILS: Trades are analysed and RL model is created for each single Expert Advisor
 #        : Q states function is calculated, whenever Action 'ON' is > than 'OFF' trade trigger will be active   
@@ -18,12 +18,11 @@
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # packages used *** make sure to install these packages
-#library(tidyverse) #install.packages("tidyverse")
 library(readr)
 library(stringr)
 library(dplyr)
-library(lubridate) #install.packages("lubridate") 
-library(ReinforcementLearning) #devtools::install_github("nproellochs/ReinforcementLearning")
+library(lubridate) 
+library(ReinforcementLearning) 
 library(magrittr)
 library(lazytrade)
 
@@ -43,16 +42,6 @@ library(lazytrade)
 # -- Fail: DFT1 class 'try-error'
 # -- Fail: xxx
 
-# ----------------
-# Used Functions (to make code more compact). See detail of each function in the repository
-#-----------------
-# *** make sure to customize this path
-#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R") 
-#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data_mt.R")
-#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/generate_RL_policy.R")
-#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/record_policy.R")
-#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
-#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/evaluate_macroeconomic_event.R")
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
@@ -62,8 +51,12 @@ path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 # terminal 3 path *** make sure to customize this path
 path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 
-# path where to read control parameters from
-path_control_files = "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL_MT/control"
+#path to user repo:
+#!!!Change this path!!! 
+path_user <- "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol"
+
+# path with folder containing control parameters
+path_control_files = file.path(path_user, "_RL_MT/control")
 
 # evaluate data on macroeconomic event (required to start trading) FALCON_F2
 evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_F2/TEST",
@@ -72,19 +65,19 @@ evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_T
                              macro_file_name = "01_MacroeconomicEvent.csv",
                              path_T1 = path_T1, path_T3 = path_T3)
 
-# evaluate data on macroeconomic event (required to start trading) FALCON_A
-evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST",
-                             setup_file_name = "Setup.csv",
-                             macro_event_path = path_T1,
-                             macro_file_name = "01_MacroeconomicEvent.csv",
-                             path_T1 = path_T1, path_T3 = path_T3)
-
-# evaluate data on macroeconomic event (required to start trading) FALCON_T
-evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_T/TEST",
-                             setup_file_name = "Setup.csv",
-                             macro_event_path = path_T1,
-                             macro_file_name = "01_MacroeconomicEvent.csv",
-                             path_T1 = path_T1, path_T3 = path_T3)
+# # evaluate data on macroeconomic event (required to start trading) FALCON_A
+# evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST",
+#                              setup_file_name = "Setup.csv",
+#                              macro_event_path = path_T1,
+#                              macro_file_name = "01_MacroeconomicEvent.csv",
+#                              path_T1 = path_T1, path_T3 = path_T3)
+# 
+# # evaluate data on macroeconomic event (required to start trading) FALCON_T
+# evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_T/TEST",
+#                              setup_file_name = "Setup.csv",
+#                              macro_event_path = path_T1,
+#                              macro_file_name = "01_MacroeconomicEvent.csv",
+#                              path_T1 = path_T1, path_T3 = path_T3)
 
 # -------------------------
 # read data from trades in terminal 1
@@ -124,11 +117,10 @@ for (i in 1:length(vector_systems)) {
   # get trading summary data only for one system 
   trading_systemDF <- DFT1 %>% filter(MagicNumber == trading_system)
   # try to extract market type information for that system, filter rows where MarketType was not logged!
-  DFT1_MT <- try(import_data_mt(path_terminal = path_T1,
-                                system_number = trading_system,
-                                demo_mode = FALSE),
+  DFT1_MT <- try(mt_import_data(path_sbxm = path_T1, 
+                                system_number =  trading_system),
                  silent = TRUE) %>%
-    filter(MarketType != -1)
+    filter(TicketNumber != -1)
   # go to the next i if there is no data
   if(class(DFT1_MT)[1]=="try-error") { next }
     # joining the data with market type info
@@ -163,7 +155,7 @@ for (i in 1:length(vector_systems)) {
     
     
     # perform reinforcement learning and return policy
-    policy_tr_systDF <- generate_RL_policy_mt(x = trading_systemDF,
+    policy_tr_systDF <- rl_generate_policy_mt(x = trading_systemDF,
                                               states = states,
                                               actions = actions,
                                               control = control)
@@ -172,10 +164,10 @@ for (i in 1:length(vector_systems)) {
     # trading_systemDF %>% group_by(MarketType) %>% summarise(ProfitMT = sum(Profit))
     
     # record policy to the sandbox of Terminal 3, this should be analysed by EA
-    record_policy_mt(x = policy_tr_systDF, 
-                     trading_system = trading_system,
-                     path_terminal = path_T3,
-                     fileName = "SystemControlMT")
+    rl_record_policy_mt(x = policy_tr_systDF, 
+                        trading_system = trading_system,
+                        path_terminal = path_T3,
+                        fileName = "SystemControlMT")
     
     
 
