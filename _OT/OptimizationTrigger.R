@@ -1,5 +1,5 @@
 ## This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis of Trades
-# Copyright (C) 2018 Vladimir Zhbanko
+# Copyright (C) 2018,2020,2021 Vladimir Zhbanko
 
 # PURPOSE: Analyse trade results in Terminal 1. Indicate when to optimize non performing systems
 # NOTE:    Results are written in the Trading System Version Control Repository. 
@@ -7,11 +7,14 @@
 #                     inside the file Setup.csv
 
 # load packages. 
-library(tidyverse)
+library(dplyr)
+library(magrittr)
+library(readr)
 library(lubridate)
 library(lazytrade)
 
 # ----------- Main Steps -----------------
+# -- Read information on which systems are in 'production'
 # -- Read trading results from Terminal 1
 # -- Analyse results and filter systems where profit factor < 0.7
 # -- Write command 'to optimize' to the file
@@ -28,9 +31,8 @@ library(lazytrade)
 # =============================================
 # *** make sure to customize this path
 # Update: below functions are added to the R package
-#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/get_profit_factorDF.R")
-#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
-#source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/check_if_optimize.R")
+# Clone repository https://github.com/vzhomeexperiments/lazytrade or
+# use documentation / examples from 'lazytrade' package
 
 # =============================================
 # ************End of Used Functions************
@@ -39,24 +41,38 @@ library(lazytrade)
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
+#path to user repo:
+#!!!Change this path!!! 
+path_user <- "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol"
+#!!!Change this path!!!
 # terminal 1 path
 path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 
 # trading system project folder
-# NOTE:
-# Robot repository must have a folder with file TEST/Setup.csv
+# NOTE: Robot repository must have a folder with file TEST/Setup.csv
 # File Setup.csv should contain magic numbers of the working systems 
-path_PRJCT_1 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/"
+#path_PRJCT_1 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/"
 path_PRJCT_2 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_F2/"
-path_PRJCT_3 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_B/"
+#path_PRJCT_3 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_B/"
 
+# -------------------------
+### DEMO/TEST MODE 
+# use code below to test functionality without MT4 platform installed
+# # -------------------------
+DFT1 <- try(import_data(path_sbxm = file.path(path_user, '_TEST_DATA'),
+                        trade_log_file = "OrdersResultsT1.csv"),
+             silent = TRUE)
+# Uncomment code chunk below
+syst_PRJCT_1 <- read_csv(system.file("extdata", "Setup.csv", package = "lazytrade"))
+DFT1 %>% check_if_optimize(system_list = syst_PRJCT_1,
+                           path_data = path_user,
+                           num_trades_to_consider = 3,
+                           profit_factor_limit = 0.7,
+                           write_mode = FALSE)
+# -------------------------
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
-# # # uncomment code below to test functionality without MT4 platform installed
-#' DFT1 <- try(import_data(trade_log_file = "_TEST_DATA/OrdersResultsT1.csv",
-#'                         demo_mode = T),
-#'             silent = TRUE)
 DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 
 # -------------------------
@@ -64,38 +80,33 @@ DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 # -------------------------
 
 #### SORTING AND DECIDE IF SYSTEM NEEDS TO BE RE-TRAINED/RE-OPTIMIZED #### -----------------------------
-# 4. Function that uses last 20 orders on DEMO && pr.fact < 0.7
+# Function that uses last 20 orders on DEMO && pr.fact < 0.7
 #
-### DEMO MODE 
-# Uncomment code chunk below
-# DFT1 %>% check_if_optimize(num_trades_to_consider = 3,
-#                            profit_factor_limit = 0.7,
-#                            demo_mode = TRUE,
-#                            write_mode = FALSE)
-
 # Results will be written to the file in the respective folder
 ### PROJECT 1
 #
-DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_1,
-                           num_trades_to_consider = 10,
-                           profit_factor_limit = 1.2,
-                           demo_mode = FALSE,
-                           write_mode = TRUE)
-#
+# syst_PRJCT_1 <- read_csv(file.path(path_PRJCT_1, "TEST/Setup.csv"))
+# 
+# DFT1 %>% check_if_optimize(system_list = syst_PRJCT_1,
+#                            path_data = path_PRJCT_1,
+#                            num_trades_to_consider = 4,
+#                            profit_factor_limit = 0.8,
+#                            write_mode = TRUE)
 ### PROJECT 2
 #
-DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_2,
-                           num_trades_to_consider = 20,
-                           profit_factor_limit = 1.0,
-                           demo_mode = FALSE,
+syst_PRJCT_2 <- read_csv(file.path(path_PRJCT_2, "TEST/Setup.csv"))
+
+DFT1 %>% check_if_optimize(system_list = syst_PRJCT_2,
+                           path_data = path_PRJCT_2,
+                           num_trades_to_consider = 4,
+                           profit_factor_limit = 0.8,
                            write_mode = TRUE)
-##======================================== end of script
 
 ### PROJECT 3
-#
-DFT1 %>% check_if_optimize(path_trading_robot = path_PRJCT_3,
-                           num_trades_to_consider = 15,
-                           profit_factor_limit = 1.0,
-                           demo_mode = FALSE,
-                           write_mode = TRUE)
-##======================================== end of script
+# syst_PRJCT_3 <- read_csv(file.path(path_PRJCT_3, "TEST/Setup.csv"))
+# 
+# DFT1 %>% check_if_optimize(system_list = syst_PRJCT_3,
+#                            path_data = path_PRJCT_3,
+#                            num_trades_to_consider = 4,
+#                            profit_factor_limit = 0.8,
+#                            write_mode = TRUE)

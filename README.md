@@ -7,8 +7,7 @@ This repository was created to help Algorithmic Trader to supervise Trading Robo
 
 ## Code in the repo
 
-_BT - code to develop backtesting capability
--OT - code to automate trading system performance analysis
+_OT - code to automate trading system performance analysis
 _RL - code to deploy Reinforcement Learning to control trading strategy based on it's performance
 _RL_MT - code to deploy Reinforcement Learning to automatically control trading strategy within 6 market  types
 _STAT_PF - code to control trading strategy based on profit factor
