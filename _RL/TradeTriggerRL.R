@@ -1,7 +1,7 @@
 # This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis and Control of Trades
-# Copyright (C) 2018 Vladimir Zhbanko
+# Copyright (C) 2018, 2021 Vladimir Zhbanko
 # Preferrably to be used only with the courses Lazy Trading see: https://vladdsm.github.io/myblog_attempt/index.html
-# https://www.udemy.com/your-trading-control-reinforcement-learning/?couponCode=LAZYTRADE4-10
+# https://www.udemy.com/course/your-trading-control-reinforcement-learning/?referralCode=7AB82127FC5C2334AE8D
 # PURPOSE: Analyse trade results in Terminal 1 and Trigger or Stop Trades in Terminal 3
 # DETAILS: Trades are analysed and RL model is created for each single Expert Advisor
 #        : Q states function is calculated, whenever Action 'ON' is > than 'OFF' trade trigger will be active   
@@ -9,10 +9,13 @@
 #        : Using dummy dataframe for the initial learning of the RL model
 
 # packages used *** make sure to install these packages
-library(tidyverse) #install.packages("tidyverse")
+library(dplyr) 
+library(magrittr)
+library(readr)
 library(lubridate) #install.packages("lubridate") 
 library(ReinforcementLearning) #install.packages("ReinforcementLearning")
 library(magrittr)
+library(lazytrade)
 
 # ----------- Main Steps -----------------
 # -- Read trading results from Terminal 1
@@ -30,16 +33,24 @@ library(magrittr)
 # -- Fail: DFT1 class 'try-error'
 # -- Fail: xxx
 
-# ----------------
-# Used Functions (to make code more compact). See detail of each function in the repository
-#-----------------
+# =============================================
+# *************Used Functions******************
+# =============================================
 # *** make sure to customize this path
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R") 
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/generate_RL_policy.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/record_policy.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
+# Update: below functions are added to the R package
+# Clone repository https://github.com/vzhomeexperiments/lazytrade or
+# use documentation / examples from 'lazytrade' package
 
- 
+# =============================================
+# ************End of Used Functions************
+# =============================================
+# -------------------------
+# Define terminals path addresses, from where we are going to read/write data
+# -------------------------
+#path to user repo:
+#!!!Change this path!!! 
+path_user <- "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol"
+#!!!Change this path!!!
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
@@ -50,15 +61,20 @@ path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 
 # path where to read control parameters from
-path_control_files = "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/control"
+path_control_files = file.path(path_user, "_RL/control")
+
+
+# -------------------------
+### DEMO/TEST MODE 
+# use code below to test functionality without MT4 platform installed
+# # -------------------------
+DFT1 <- try(import_data(path_sbxm = file.path(path_user, '_TEST_DATA'),
+                        trade_log_file = "OrdersResultsT1.csv"),
+            silent = TRUE)
 
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
-# uncomment code below to test functionality without MT4 platform installed
-# DFT1 <- try(import_data(trade_log_file = "_TEST_DATA/OrdersResultsT1.csv",
-#                         demo_mode = T),
-#             silent = TRUE)
 DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 # -------------------------
 # read data from trades in terminal 3

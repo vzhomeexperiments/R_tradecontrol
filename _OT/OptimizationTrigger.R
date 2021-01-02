@@ -66,8 +66,8 @@ DFT1 <- try(import_data(path_sbxm = file.path(path_user, '_TEST_DATA'),
 syst_PRJCT_1 <- read_csv(system.file("extdata", "Setup.csv", package = "lazytrade"))
 DFT1 %>% check_if_optimize(system_list = syst_PRJCT_1,
                            path_data = path_user,
-                           num_trades_to_consider = 3,
-                           profit_factor_limit = 0.7,
+                           num_trades_to_consider = 10,
+                           profit_factor_limit = 1.7,
                            write_mode = FALSE)
 # -------------------------
 # -------------------------

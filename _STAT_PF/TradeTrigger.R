@@ -1,12 +1,15 @@
 # This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis and Control of Trades
-# Copyright (C) 2018 Vladimir Zhbanko
+# Copyright (C) 2018,2021 Vladimir Zhbanko
 
 # PURPOSE: Analyse trade results in Terminal 1 and Trigger or Stop Trades in Terminal 3
 # NOTE:    Results are triggered by writing to the file of the MT4 Trading Terminal
 
 # packages used *** make sure to install these packages
-library(tidyverse) #install.packages("tidyverse")
-library(lubridate) #install.packages("lubridate") 
+library(readr)
+library(dplyr)
+library(magrittr)
+library(lubridate)
+library(lazytrade)
 
 # ----------- Applied Logic -----------------
 # -- Read trading results from Terminal 1
@@ -25,30 +28,46 @@ library(lubridate) #install.packages("lubridate")
 # -- Pass: If file "01_MacroeconomicEvent.csv" exists trade policy is overwritten
 # -- Fail: DFT1 class 'try-error'
 # -- Fail: xxx
-# ----------------
-# Used Functions
-#-----------------
+# =============================================
+# *************Used Functions******************
+# =============================================
 # *** make sure to customize this path
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/get_profit_factorDF.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/writeCommandViaCSV.R")
+# Update: below functions are added to the R package
+# Clone repository https://github.com/vzhomeexperiments/lazytrade or
+# use documentation / examples from 'lazytrade' package
+
+# =============================================
+# ************End of Used Functions************
+# =============================================
 
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
+#path to user repo:
+#!!!Change this path!!! 
+path_user <- "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol"
+#!!!Change this path!!!
 # terminal 1 path *** make sure to customize this path
+## NOTE: your path must contain: 'Terminal1'
 path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 # terminal 3 path *** make sure to customize this path
+## NOTE: your path must contain: 'Terminal3'
 path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
+
+
+# # uncomment code below to test functionality without MT4 platform installed
+# -------------------------
+### DEMO/TEST MODE 
+# use code below to test functionality without MT4 platform installed
+# # -------------------------
+DFT1 <- try(import_data(path_sbxm = file.path(path_user, '_TEST_DATA'),
+                        trade_log_file = "OrdersResultsT1.csv"),
+            silent = TRUE)
+
 
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
-# # uncomment code below to test functionality without MT4 platform installed
-# DFT1 <- try(import_data(trade_log_file = "_TEST_DATA/OrdersResultsT1.csv",
-#                         demo_mode = T),
-#             silent = TRUE)
-
 DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"),silent = TRUE)
 
 
@@ -69,29 +88,29 @@ DFT1_L %>%
   select(MagicNumber) %>%
   mutate(IsEnabled = 1) %>% 
   # Write command "allow"
-  writeCommandViaCSV(path_T1)
+  write_command_via_csv(path_T1)
 
 #### DECIDE IF TRADING ON THE T3 ACCOUNT #### -----------------------------
 # Last 10 orders on DEMO && pr.fact >= 2 start trade T3
 DFT1_L %>%
   get_profit_factorDF(10) %>% 
   ungroup() %>% 
-  filter(PrFact >= 2) %>% 
+  filter(PrFact >= 1.6) %>% 
   select(MagicNumber) %>% 
   mutate(MagicNumber = MagicNumber + 200, IsEnabled = 1) %>% 
   # Write command "allow"
-  writeCommandViaCSV(path_T3)
+  write_command_via_csv(path_T3)
 
 #### DECIDE IF NOT TO TRADING ON THE T3 ACCOUNT #### -----------------------------
 # 4. Last 10 orders on DEMO && pr.fact < 1.6 stop trade T3
 DFT1_L %>%
   get_profit_factorDF(10) %>% 
   ungroup() %>% 
-  filter(PrFact < 1.6) %>% 
+  filter(PrFact < 1.3) %>% 
   select(MagicNumber) %>% 
   mutate(MagicNumber = MagicNumber + 200, IsEnabled = 0) %>% 
   # Write command "allow"
-  writeCommandViaCSV(path_T3)
+  write_command_via_csv(path_T3)
 
 #write_rds(DFT1_L, "test_data_profit_factorDF.rds")
 ##========================================
@@ -121,7 +140,7 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
     if(!class(DFT3)[1]=='try-error'){
       DFT3 %>%
         group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
-        writeCommandViaCSV(path_T3)}
+        write_command_via_csv(path_T3)}
     
     
   }
@@ -132,7 +151,7 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
       DFT1 %>%
         group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 1) %>% 
         # write commands to disable systems
-        writeCommandViaCSV(path_T1)}
+        write_command_via_csv(path_T1)}
    
   }
   
