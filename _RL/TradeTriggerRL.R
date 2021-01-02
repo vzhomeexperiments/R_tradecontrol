@@ -12,10 +12,11 @@
 library(dplyr) 
 library(magrittr)
 library(readr)
-library(lubridate) #install.packages("lubridate") 
-library(ReinforcementLearning) #install.packages("ReinforcementLearning")
+library(lubridate) 
+library(ReinforcementLearning)
 library(magrittr)
 library(lazytrade)
+library(stringr)
 
 # ----------- Main Steps -----------------
 # -- Read trading results from Terminal 1
@@ -127,7 +128,7 @@ for (i in 1:length(vector_systems)) {
   #control <- read_rds(paste0(path_control_files,"/", 8118102, ".rds"))
   
   # perform reinforcement learning and return policy
-  policy_tr_systDF <- generate_RL_policy(trading_systemDF, states = states,actions = actions,
+  policy_tr_systDF <- rl_generate_policy(trading_systemDF, states = states,actions = actions,
                                          control = control)
   # get the latest trade of that system (will be used to match with policy of RL)
   latest_trade <- DFT1 %>% 
@@ -139,7 +140,10 @@ for (i in 1:length(vector_systems)) {
            State = NextState) %>% head(1) %$% NextState
   
   # record policy to the sandbox of Terminal 3, this should be analysed by EA
-  record_policy(x = policy_tr_systDF, last_result = latest_trade, trading_system = trading_system, path_sandbox = path_T3)
+  rl_record_policy(x = policy_tr_systDF,
+                   last_result = latest_trade,
+                   trading_system = trading_system,
+                   path_terminal = path_T3)
   
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
@@ -166,7 +170,7 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
     if(!class(DFT3)[1]=='try-error'){
       DFT3 %>%
         group_by(MagicNumber) %>% select(MagicNumber) %>% mutate(IsEnabled = 0) %>% 
-        writeCommandViaCSV(path_T3)}
+        write_command_via_csv(path_T3)}
     
     
   }
@@ -178,7 +182,7 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
       read_csv("C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST/Setup.csv") %>%
         group_by(Magic) %>% select(Magic) %>% mutate(IsEnabled = 1) %>% 
         # write commands to disable systems
-        writeCommandViaCSV(path_T1)}
+        write_command_via_csv(path_T1)}
 
     
   }

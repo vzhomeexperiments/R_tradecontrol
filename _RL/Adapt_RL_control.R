@@ -1,14 +1,17 @@
 # This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis and Control of Trades
 # Copyright (C) 2018 Vladimir Zhbanko
 # Preferrably to be used only with the courses Lazy Trading see: https://vladdsm.github.io/myblog_attempt/index.html
-# https://www.udemy.com/your-trading-control-reinforcement-learning/?couponCode=LAZYTRADE4-10
+# https://www.udemy.com/course/your-trading-control-reinforcement-learning/?referralCode=7AB82127FC5C2334AE8D
 # PURPOSE: Adapt RL control parameters and write them to the file
 
 # packages used *** make sure to install these packages
-library(tidyverse) #install.packages("tidyverse")
-library(lubridate) #install.packages("lubridate") 
-library(ReinforcementLearning) #install.packages("ReinforcementLearning")
+library(dplyr) 
 library(magrittr)
+library(readr)
+library(lubridate) 
+library(ReinforcementLearning)
+library(magrittr)
+library(lazytrade)
 
 # ----------- Main Steps -----------------
 # -- Read trading results from Terminal 1
@@ -24,29 +27,38 @@ library(magrittr)
 # -- Fail: DFT1 class 'try-error'
 # -- Fail: xxx
 
-# ----------------
-# Used Functions (to make code more compact). See detail of each function in the repository
-#-----------------
+# =============================================
+# *************Used Functions******************
+# =============================================
 # *** make sure to customize this path
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/import_data.R") 
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/write_control_parameters.R")
-source("C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/log_RL_progress.R")
- 
+# Update: below functions are added to the R package
+# Clone repository https://github.com/vzhomeexperiments/lazytrade or
+# use documentation / examples from 'lazytrade' package
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
+#path to user repo:
+#!!!Change this path!!! 
+path_user <- "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol"
+#!!!Change this path!!!
+
 # terminal 1 path *** make sure to customize this path
 path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
 
 # path with folder containing control parameters
-path_control_files = "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol/_RL/control"
+path_control_files = file.path(path_user, "_RL/control")
+
+# -------------------------
+### DEMO/TEST MODE 
+# use code below to test functionality without MT4 platform installed
+# # -------------------------
+DFT1 <- try(import_data(path_sbxm = file.path(path_user, '_TEST_DATA'),
+                        trade_log_file = "OrdersResultsT1.csv"),
+            silent = TRUE)
+
 # -------------------------
 # read data from trades in terminal 1
 # -------------------------
-# # uncomment code below to test functionality without MT4 platform installed
-# DFT1 <- try(import_data(trade_log_file = "_TEST_DATA/OrdersResultsT1.csv",
-#                         demo_mode = T),
-#             silent = TRUE)
 DFT1 <- try(import_data(path_T1, "OrdersResultsT1.csv"), silent = TRUE)
 
 # Vector with unique Trading Systems
@@ -95,8 +107,8 @@ for (i in 1:length(vector_systems)) {
   #control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) 
   
   # or to use optimal control parameters found by auxiliary function
-  write_control_parameters(trading_systemDF, 
-                           path_control_files = path_control_files)
+  rl_write_control_parameters(trading_systemDF, 
+                              path_control_files = path_control_files)
   #cntrl <- read_rds(paste0(path_control_files, "/", trading_system, ".rds"))
   #cntrl <- read_rds(paste0(path_control_files, "/", 8139106, ".rds"))
   
