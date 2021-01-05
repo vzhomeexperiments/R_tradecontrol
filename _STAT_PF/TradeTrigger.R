@@ -59,10 +59,10 @@ path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
 # -------------------------
 ### DEMO/TEST MODE 
 # use code below to test functionality without MT4 platform installed
-# # -------------------------
-DFT1 <- try(import_data(path_sbxm = file.path(path_user, '_TEST_DATA'),
-                        trade_log_file = "OrdersResultsT1.csv"),
-            silent = TRUE)
+# # # -------------------------
+# DFT1 <- try(import_data(path_sbxm = file.path(path_user, '_TEST_DATA'),
+#                         trade_log_file = "OrdersResultsT1.csv"),
+#             silent = TRUE)
 
 
 # -------------------------

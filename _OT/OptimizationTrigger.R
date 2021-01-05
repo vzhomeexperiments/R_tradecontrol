@@ -1,5 +1,5 @@
 ## This is a dedicated script for the Lazy Trading 4th Course: Statistical Analysis of Trades
-# Copyright (C) 2018,2020,2021 Vladimir Zhbanko
+# Copyright (C) 2018,2021 Vladimir Zhbanko
 
 # PURPOSE: Analyse trade results in Terminal 1. Indicate when to optimize non performing systems
 # NOTE:    Results are written in the Trading System Version Control Repository. 
@@ -58,17 +58,17 @@ path_PRJCT_2 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_F2/"
 # -------------------------
 ### DEMO/TEST MODE 
 # use code below to test functionality without MT4 platform installed
-# # -------------------------
-DFT1 <- try(import_data(path_sbxm = file.path(path_user, '_TEST_DATA'),
-                        trade_log_file = "OrdersResultsT1.csv"),
-             silent = TRUE)
-# Uncomment code chunk below
-syst_PRJCT_1 <- read_csv(system.file("extdata", "Setup.csv", package = "lazytrade"))
-DFT1 %>% check_if_optimize(system_list = syst_PRJCT_1,
-                           path_data = path_user,
-                           num_trades_to_consider = 10,
-                           profit_factor_limit = 1.7,
-                           write_mode = FALSE)
+# # # -------------------------
+# DFT1 <- try(import_data(path_sbxm = file.path(path_user, '_TEST_DATA'),
+#                         trade_log_file = "OrdersResultsT1.csv"),
+#              silent = TRUE)
+# # Uncomment code chunk below
+# syst_PRJCT_1 <- read_csv(system.file("extdata", "Setup.csv", package = "lazytrade"))
+# DFT1 %>% check_if_optimize(system_list = syst_PRJCT_1,
+#                            path_data = path_user,
+#                            num_trades_to_consider = 10,
+#                            profit_factor_limit = 1.7,
+#                            write_mode = FALSE)
 # -------------------------
 # -------------------------
 # read data from trades in terminal 1
@@ -98,7 +98,7 @@ syst_PRJCT_2 <- read_csv(file.path(path_PRJCT_2, "TEST/Setup.csv"))
 
 DFT1 %>% check_if_optimize(system_list = syst_PRJCT_2,
                            path_data = path_PRJCT_2,
-                           num_trades_to_consider = 4,
+                           num_trades_to_consider = 10,
                            profit_factor_limit = 0.8,
                            write_mode = TRUE)
 
