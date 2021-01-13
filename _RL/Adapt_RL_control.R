@@ -71,6 +71,7 @@ DFT1_sum <- DFT1 %>%
             Mean_profit = sum(Profit)) %>% 
   arrange(desc(Num_Trades))
 
+StartAdaptation <- Sys.time()
 ### ============== FOR EVERY TRADING SYSTEM ###
 for (i in 1:length(vector_systems)) {
   # tryCatch() function will not abort the entire for loop in case of the error in one iteration
@@ -107,8 +108,11 @@ for (i in 1:length(vector_systems)) {
   #control <- list(alpha = 0.3, gamma = 0.6, epsilon = 0.1) 
   
   # or to use optimal control parameters found by auxiliary function
+  st <- Sys.time()
   rl_write_control_parameters(trading_systemDF, 
-                              path_control_files = path_control_files)
+                              path_control_files = path_control_files,
+                              num_trades_to_consider = 300)
+  en <- Sys.time()
   #cntrl <- read_rds(paste0(path_control_files, "/", trading_system, ".rds"))
   #cntrl <- read_rds(paste0(path_control_files, "/", 8139106, ".rds"))
   
@@ -117,4 +121,4 @@ for (i in 1:length(vector_systems)) {
   
 }
 ### ============== END of FOR EVERY TRADING SYSTEM ###
-
+EndAdaptation <- Sys.time()
