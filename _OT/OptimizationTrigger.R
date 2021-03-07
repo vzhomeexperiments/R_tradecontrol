@@ -42,18 +42,21 @@ library(lazytrade)
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
 #path to user repo:
-#!!!Change this path!!! 
-path_user <- "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol"
-#!!!Change this path!!!
+#!!!Setup Environmental Variables!!! 
+path_user <- normalizePath(Sys.getenv('PATH_DSS_Repo'), winslash = '/')
+path_user <- file.path(path_user, "R_tradecontrol")
+
 # terminal 1 path
-path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
+#!!!Setup Environmental Variables!!! 
+path_T1 <- normalizePath(Sys.getenv('PATH_T1'), winslash = '/')
 
 # trading system project folder
 # NOTE: Robot repository must have a folder with file TEST/Setup.csv
 # File Setup.csv should contain magic numbers of the working systems 
-#path_PRJCT_1 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/"
-path_PRJCT_2 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_F2/"
-#path_PRJCT_3 <- "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_B/"
+path_PRJCT <- normalizePath(Sys.getenv('PATH_DSS_Repo'), winslash = '/')
+#path_PRJCT_1 <- file.path(path_PRJCT,"FALCON_A/")
+path_PRJCT_2 <- file.path(path_PRJCT,"FALCON_F2/")
+#path_PRJCT_3 <- file.path(path_PRJCT,"FALCON_B/")
 
 # -------------------------
 ### DEMO/TEST MODE 

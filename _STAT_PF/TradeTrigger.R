@@ -44,15 +44,19 @@ library(lazytrade)
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
 #path to user repo:
-#!!!Change this path!!! 
-path_user <- "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol"
+#!!!Setup Environmental Variables!!! 
+path_user <- normalizePath(Sys.getenv('PATH_DSS_Repo'), winslash = '/')
+path_user <- file.path(path_user, "R_tradecontrol")
 #!!!Change this path!!!
-# terminal 1 path *** make sure to customize this path
+# terminal 1 path *** 
+#!!!Setup Environmental Variables!!! 
 ## NOTE: your path must contain: 'Terminal1'
-path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
-# terminal 3 path *** make sure to customize this path
+path_T1 <- normalizePath(Sys.getenv('PATH_T1'), winslash = '/')
+
+# terminal 3 path *** 
+#!!!Setup Environmental Variables!!! 
 ## NOTE: your path must contain: 'Terminal3'
-path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
+path_T3 <- normalizePath(Sys.getenv('PATH_T3'), winslash = '/')
 
 
 # # uncomment code below to test functionality without MT4 platform installed

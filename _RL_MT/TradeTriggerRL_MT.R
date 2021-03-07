@@ -45,35 +45,39 @@ library(lazytrade)
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
-# terminal 1 path *** make sure to customize this path
-path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
+# terminal 1 path *** 
+#!!!Setup Environmental Variables!!! 
+path_T1 <- normalizePath(Sys.getenv('PATH_T1'), winslash = '/')
 
-# terminal 3 path *** make sure to customize this path
-path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
+# terminal 3 path *** 
+#!!!Setup Environmental Variables!!! 
+path_T3 <- normalizePath(Sys.getenv('PATH_T3'), winslash = '/')
 
 #path to user repo:
-#!!!Change this path!!! 
-path_user <- "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol"
+#!!!Setup Environmental Variables!!! 
+path_user <- normalizePath(Sys.getenv('PATH_DSS_Repo'), winslash = '/')
+path_user <- file.path(path_user, "R_tradecontrol")
+path_PRJCT <- normalizePath(Sys.getenv('PATH_DSS_Repo'), winslash = '/')
 
 # path with folder containing control parameters
 path_control_files = file.path(path_user, "_RL_MT/control")
 
 # evaluate data on macroeconomic event (required to start trading) FALCON_F2
-evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_F2/TEST",
+evaluate_macroeconomic_event(setup_file_path = file.path(path_PRJCT, "FALCON_F2/TEST"),
                              setup_file_name = "Setup.csv",
                              macro_event_path = path_T1,
                              macro_file_name = "01_MacroeconomicEvent.csv",
                              path_T1 = path_T1, path_T3 = path_T3)
 
 # # evaluate data on macroeconomic event (required to start trading) FALCON_A
-# evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST",
+# evaluate_macroeconomic_event(setup_file_path = file.path(path_PRJCT, "FALCON_A/TEST"),
 #                              setup_file_name = "Setup.csv",
 #                              macro_event_path = path_T1,
 #                              macro_file_name = "01_MacroeconomicEvent.csv",
 #                              path_T1 = path_T1, path_T3 = path_T3)
 # 
 # # evaluate data on macroeconomic event (required to start trading) FALCON_T
-# evaluate_macroeconomic_event(setup_file_path = "C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_T/TEST",
+# evaluate_macroeconomic_event(setup_file_path = file.path(path_PRJCT, "FALCON_T/TEST"),
 #                              setup_file_name = "Setup.csv",
 #                              macro_event_path = path_T1,
 #                              macro_file_name = "01_MacroeconomicEvent.csv",

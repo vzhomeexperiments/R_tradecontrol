@@ -49,17 +49,20 @@ library(stringr)
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
 #path to user repo:
-#!!!Change this path!!! 
-path_user <- "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol"
-#!!!Change this path!!!
+#!!!Setup Environmental Variables!!! 
+path_user <- normalizePath(Sys.getenv('PATH_DSS_Repo'), winslash = '/')
+path_user <- file.path(path_user, "R_tradecontrol")
+path_PRJCT <- normalizePath(Sys.getenv('PATH_DSS_Repo'), winslash = '/')
 # -------------------------
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
-# terminal 1 path *** make sure to customize this path
-path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
+# terminal 1 path *** 
+#!!!Setup Environmental Variables!!! 
+path_T1 <- normalizePath(Sys.getenv('PATH_T1'), winslash = '/')
 
-# terminal 3 path *** make sure to customize this path
-path_T3 <- "C:/Program Files (x86)/FxPro - Terminal3/MQL4/Files/"
+# terminal 3 path *** 
+#!!!Setup Environmental Variables!!! 
+path_T3 <- normalizePath(Sys.getenv('PATH_T3'), winslash = '/')
 
 # path where to read control parameters from
 path_control_files = file.path(path_user, "_RL/control")
@@ -175,11 +178,12 @@ if(file.exists(file.path(path_T1, "01_MacroeconomicEvent.csv"))){
     
   }
   # enable systems of T1 in case they were disabled previously
+
   if(DF_NT[1,1] == 0) {
     # enable trades
     if(!class(DFT1)[1]=='try-error'){
       # temporary solution: enable trades from the working project
-      read_csv("C:/Users/fxtrams/Documents/000_TradingRepo/FALCON_A/TEST/Setup.csv") %>%
+      read_csv(file.path(path_PRJCT,"FALCON_A/TEST/Setup.csv")) %>%
         group_by(Magic) %>% select(Magic) %>% mutate(IsEnabled = 1) %>% 
         # write commands to disable systems
         write_command_via_csv(path_T1)}

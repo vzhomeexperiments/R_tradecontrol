@@ -38,12 +38,13 @@ library(lazytrade)
 # Define terminals path addresses, from where we are going to read/write data
 # -------------------------
 #path to user repo:
-#!!!Change this path!!! 
-path_user <- "C:/Users/fxtrams/Documents/000_TradingRepo/R_tradecontrol"
-#!!!Change this path!!!
+#!!!Setup Environmental Variables!!! 
+path_user <- normalizePath(Sys.getenv('PATH_DSS_Repo'), winslash = '/')
+path_user <- file.path(path_user, "R_tradecontrol")
 
-# terminal 1 path *** make sure to customize this path
-path_T1 <- "C:/Program Files (x86)/FxPro - Terminal1/MQL4/Files/"
+# terminal 1 path *** 
+#!!!Setup Environmental Variables!!! 
+path_T1 <- normalizePath(Sys.getenv('PATH_T1'), winslash = '/')
 
 # path with folder containing control parameters
 path_control_files = file.path(path_user, "_RL/control")
